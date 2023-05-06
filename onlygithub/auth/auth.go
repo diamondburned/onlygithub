@@ -120,7 +120,7 @@ func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request)
 		Value: ourToken,
 	})
 
-	if err = a.tokens.SaveToken(ourToken, a.provider, token); err != nil {
+	if err = a.tokens.SaveToken(r.Context(), ourToken, a.provider, token); err != nil {
 		api.RespondError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to save token"))
 		return
 	}
@@ -145,7 +145,7 @@ func (a *OAuthAuthorizer) FromRequest(r *http.Request) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("no such cookie %s-token", a.provider)
 	}
-	return a.tokens.RetrieveToken(cookie.Value, a.provider)
+	return a.tokens.RetrieveToken(r.Context(), cookie.Value, a.provider)
 }
 
 // Use returns a middleware that authorizes requests. It is required for

@@ -1,0 +1,67 @@
+query sponsors($endCursor: String, $limit: Int = 100) {
+  viewer {
+    sponsorshipsAsMaintainer(first: $limit, after: $endCursor, includePrivate: true, activeOnly: true) {
+      edges {
+        node {
+          id
+          sponsorEntity {
+            ... on User {
+              id
+              login
+              name
+              avatarUrl
+            }
+            ... on Organization {
+              id
+              login
+              name
+              avatarUrl
+            }
+          }
+          privacyLevel
+          isOneTimePayment
+          isActive
+          createdAt
+          tierSelectedAt
+          tier {
+            id
+            name
+            monthlyPriceInCents
+            isOneTime
+            isCustomAmount
+            description
+            descriptionHTML
+          }
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}
+
+query tiers($endCursor: String, $limit: Int = 100) {
+  viewer {
+    sponsorsListing {
+      tiers(first: $limit, after: $endCursor) {
+        edges {
+          node {
+            id
+            name
+            monthlyPriceInCents
+            isOneTime
+            isCustomAmount
+            description
+            descriptionHTML
+          }
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
+    }
+  }
+}

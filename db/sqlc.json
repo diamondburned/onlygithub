@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "sql": [
+    {
+      "engine": "sqlite",
+      "schema": "sqlite/schema.sql",
+      "queries": "sqlite/queries.sql",
+      "gen": {
+        "go": {
+          "package": "sqlite",
+          "out": "sqlite",
+          "output_files_suffix": ".gen",
+          "output_db_file_name": "db.gen.go",
+          "output_models_file_name": "models.gen.go"
+        }
+      }
+    }
+  ]
+}

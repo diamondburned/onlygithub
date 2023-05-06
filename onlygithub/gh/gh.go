@@ -1,6 +1,7 @@
 package gh
 
-//go:generate wget -N https://docs.github.com/public/schema.docs.graphql -O /tmp/github.graphqls
+//go:generate mkdir -p /tmp/onlygithub
+//go:generate wget -P /tmp/onlygithub -q -N https://docs.github.com/public/schema.docs.graphql
 //go:generate genqlient
 
 import (
@@ -47,14 +48,30 @@ func NewClient(ctx context.Context, tokenSource oauth2.TokenSource) *Client {
 	}
 }
 
+// Me returns the current user.
+func (c *Client) Me(ctx context.Context) (*onlygithub.User, error) {
+	resp, err := me(ctx, c.genqlient)
+	if err != nil {
+		return nil, err
+	}
+
+	return &onlygithub.User{
+		ID:        onlygithub.GitHubID(resp.Viewer.Id),
+		Username:  resp.Viewer.Login,
+		RealName:  resp.Viewer.Name,
+		Pronouns:  resp.Viewer.Pronouns,
+		AvatarURL: resp.Viewer.AvatarUrl,
+	}, nil
+}
+
 // Sponsors returns a paginator for fetching sponsors.
 func (c *Client) Sponsors(ctx context.Context, limit int) Paginator[onlygithub.User] {
 	return &paginator[sponsorsResponse, onlygithub.User]{
 		client: c,
 		ctx:    ctx,
 		limit:  limit,
-		queryFunc: func(ctx context.Context, client *Client, cursor string, limit int32) (*sponsorsResponse, error) {
-			return sponsors(ctx, client.genqlient, cursor, limit)
+		queryFunc: func(ctx context.Context, cursor string, limit int32) (*sponsorsResponse, error) {
+			return sponsors(ctx, c.genqlient, cursor, limit)
 		},
 		mapFunc: func(resp *sponsorsResponse) (paginatedResource[onlygithub.User], error) {
 			users := make([]onlygithub.User, 0, len(resp.Viewer.SponsorshipsAsMaintainer.Edges))
@@ -77,13 +94,14 @@ func (c *Client) Sponsors(ctx context.Context, limit int) Paginator[onlygithub.U
 				switch sponsor := node.SponsorEntity.(type) {
 				case *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityOrganization:
 					user.ID = onlygithub.GitHubID(sponsor.Id)
-					user.Name = sponsor.Login
-					user.Nickname = sponsor.Name
+					user.Username = sponsor.Login
+					user.RealName = sponsor.Name
 					user.AvatarURL = sponsor.AvatarUrl
 				case *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser:
 					user.ID = onlygithub.GitHubID(sponsor.Id)
-					user.Name = sponsor.Login
-					user.Nickname = sponsor.Name
+					user.Username = sponsor.Login
+					user.RealName = sponsor.Name
+					user.Pronouns = sponsor.Pronouns
 					user.AvatarURL = sponsor.AvatarUrl
 				}
 
@@ -104,8 +122,8 @@ func (c *Client) Tiers(ctx context.Context, limit int) Paginator[onlygithub.Tier
 		client: c,
 		ctx:    ctx,
 		limit:  limit,
-		queryFunc: func(ctx context.Context, client *Client, cursor string, limit int32) (*tiersResponse, error) {
-			return tiers(ctx, client.genqlient, cursor, limit)
+		queryFunc: func(ctx context.Context, cursor string, limit int32) (*tiersResponse, error) {
+			return tiers(ctx, c.genqlient, cursor, limit)
 		},
 		mapFunc: func(resp *tiersResponse) (paginatedResource[onlygithub.Tier], error) {
 			tiers := make([]onlygithub.Tier, 0, len(resp.Viewer.SponsorsListing.Tiers.Edges))
@@ -133,7 +151,7 @@ type paginator[RespT, ResourceT any] struct {
 	client    *Client
 	ctx       context.Context
 	limit     int
-	queryFunc func(ctx context.Context, client *Client, cursor string, limit int32) (*RespT, error)
+	queryFunc func(ctx context.Context, cursor string, limit int32) (*RespT, error)
 	mapFunc   func(*RespT) (paginatedResource[ResourceT], error)
 
 	Cursor  string `json:"cursor"`
@@ -157,7 +175,7 @@ func (p *paginator[RespT, ResourceT]) UnmarshalJSON(data []byte) error {
 }
 
 func (p *paginator[RespT, ResourceT]) Next() ([]ResourceT, error) {
-	resp, err := p.queryFunc(p.ctx, p.client, p.Cursor, int32(p.limit))
+	resp, err := p.queryFunc(p.ctx, p.Cursor, int32(p.limit))
 	if err != nil {
 		return nil, err
 	}

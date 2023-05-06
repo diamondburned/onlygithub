@@ -1,3 +1,13 @@
+query me() {
+  viewer {
+    id
+    login
+    name
+    avatarUrl
+    pronouns
+  }
+}
+
 query sponsors($endCursor: String, $limit: Int = 100) {
   viewer {
     sponsorshipsAsMaintainer(first: $limit, after: $endCursor, includePrivate: true, activeOnly: true) {
@@ -10,6 +20,7 @@ query sponsors($endCursor: String, $limit: Int = 100) {
               login
               name
               avatarUrl
+              pronouns
             }
             ... on Organization {
               id

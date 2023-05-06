@@ -46,6 +46,46 @@ func (v *__tiersInput) GetEndCursor() string { return v.EndCursor }
 // GetLimit returns __tiersInput.Limit, and is useful for accessing the field via an interface.
 func (v *__tiersInput) GetLimit() int32 { return v.Limit }
 
+// meResponse is returned by me on success.
+type meResponse struct {
+	// The currently authenticated user.
+	Viewer meViewerUser `json:"viewer"`
+}
+
+// GetViewer returns meResponse.Viewer, and is useful for accessing the field via an interface.
+func (v *meResponse) GetViewer() meViewerUser { return v.Viewer }
+
+// meViewerUser includes the requested fields of the GraphQL type User.
+// The GraphQL type's documentation follows.
+//
+// A user is an individual's account on GitHub that owns repositories and can make new content.
+type meViewerUser struct {
+	Id string `json:"id"`
+	// The username used to login.
+	Login string `json:"login"`
+	// The user's public profile name.
+	Name string `json:"name"`
+	// A URL pointing to the user's public avatar.
+	AvatarUrl string `json:"avatarUrl"`
+	// The user's profile pronouns
+	Pronouns string `json:"pronouns"`
+}
+
+// GetId returns meViewerUser.Id, and is useful for accessing the field via an interface.
+func (v *meViewerUser) GetId() string { return v.Id }
+
+// GetLogin returns meViewerUser.Login, and is useful for accessing the field via an interface.
+func (v *meViewerUser) GetLogin() string { return v.Login }
+
+// GetName returns meViewerUser.Name, and is useful for accessing the field via an interface.
+func (v *meViewerUser) GetName() string { return v.Name }
+
+// GetAvatarUrl returns meViewerUser.AvatarUrl, and is useful for accessing the field via an interface.
+func (v *meViewerUser) GetAvatarUrl() string { return v.AvatarUrl }
+
+// GetPronouns returns meViewerUser.Pronouns, and is useful for accessing the field via an interface.
+func (v *meViewerUser) GetPronouns() string { return v.Pronouns }
+
 // sponsorsResponse is returned by sponsors on success.
 type sponsorsResponse struct {
 	// The currently authenticated user.
@@ -380,6 +420,8 @@ type sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsor
 	Name string `json:"name"`
 	// A URL pointing to the user's public avatar.
 	AvatarUrl string `json:"avatarUrl"`
+	// The user's profile pronouns
+	Pronouns string `json:"pronouns"`
 }
 
 // GetTypename returns sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser.Typename, and is useful for accessing the field via an interface.
@@ -405,6 +447,11 @@ func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSpo
 // GetAvatarUrl returns sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser.AvatarUrl, and is useful for accessing the field via an interface.
 func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser) GetAvatarUrl() string {
 	return v.AvatarUrl
+}
+
+// GetPronouns returns sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser.Pronouns, and is useful for accessing the field via an interface.
+func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipSponsorEntityUser) GetPronouns() string {
+	return v.Pronouns
 }
 
 // sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipTierSponsorsTier includes the requested fields of the GraphQL type SponsorsTier.
@@ -633,6 +680,41 @@ func (v *tiersViewerUserSponsorsListingTiersSponsorsTierConnectionPageInfo) GetH
 	return v.HasNextPage
 }
 
+// The query or mutation executed by me.
+const me_Operation = `
+query me {
+	viewer {
+		id
+		login
+		name
+		avatarUrl
+		pronouns
+	}
+}
+`
+
+func me(
+	ctx context.Context,
+	client graphql.Client,
+) (*meResponse, error) {
+	req := &graphql.Request{
+		OpName: "me",
+		Query:  me_Operation,
+	}
+	var err error
+
+	var data meResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by sponsors.
 const sponsors_Operation = `
 query sponsors ($endCursor: String, $limit: Int = 100) {
@@ -648,6 +730,7 @@ query sponsors ($endCursor: String, $limit: Int = 100) {
 							login
 							name
 							avatarUrl
+							pronouns
 						}
 						... on Organization {
 							id

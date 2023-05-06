@@ -126,16 +126,18 @@ func (t Tiers) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
 type User struct {
 	// ID is the ID of the user on GitHub.
 	ID GitHubID `json:"id"`
-	// Name is the name of the user.
-	Name string `json:"name"`
+	// Username is the name of the user. It is known as `login` on GitHub's API.
+	Username string `json:"username"`
 	// JoinedAt is the time the user joined this service.
 	JoinedAt time.Time `json:"joinedAt"`
 	// Email is the email of the user. It is not guaranteed to be set.
 	// GitHub also has an API to send an email to a sponsor group, so that
 	// should be used instead.
 	Email string `json:"email,omitempty"`
-	// Nickname is the nickname of the user.
-	Nickname string `json:"nickname,omitempty"`
+	// RealName is the nickname of the user.
+	RealName string `json:"realName,omitempty"`
+	// Pronouns is the pronouns of the user.
+	Pronouns string `json:"pronouns,omitempty"`
 	// AvatarURL is the URL of the avatar of the user.
 	AvatarURL string `json:"avatarURL,omitempty"`
 	// Sponsorship is the sponsorship of the user. If null, the user is not

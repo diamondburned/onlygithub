@@ -50,17 +50,18 @@ type OAuthTokenService interface {
 // requests.
 type OAuthAuthorizer struct {
 	chi.Router
-	config   *oauth2.Config
-	tokens   OAuthTokenService
-	provider string
+	Config   *oauth2.Config
+	Provider string
+
+	tokens OAuthTokenService
 }
 
 // NewOAuthAuthorizer returns a new OAuthAuthorizer.
 func NewOAuthAuthorizer(provider string, config *oauth2.Config, tokenService OAuthTokenService) *OAuthAuthorizer {
 	a := &OAuthAuthorizer{
-		config:   config,
+		Config:   config,
 		tokens:   tokenService,
-		provider: provider,
+		Provider: provider,
 	}
 
 	a.Router = chi.NewRouter()
@@ -73,9 +74,9 @@ func NewOAuthAuthorizer(provider string, config *oauth2.Config, tokenService OAu
 // handleLogin is the route that redirects the user to the OAuth provider
 // to authorize the application.
 func (a *OAuthAuthorizer) handleLogin(w http.ResponseWriter, r *http.Request) {
-	ticket := generateToken(a.provider + "-state")
+	ticket := generateToken(a.Provider + "-state")
 	http.SetCookie(w, &http.Cookie{
-		Name:    a.provider + "-state",
+		Name:    a.Provider + "-state",
 		Value:   ticket,
 		Expires: time.Now().Add(30 * time.Minute),
 	})
@@ -85,19 +86,19 @@ func (a *OAuthAuthorizer) handleLogin(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
 	if origin != "" {
 		http.SetCookie(w, &http.Cookie{
-			Name:  a.provider + "-origin",
+			Name:  a.Provider + "-origin",
 			Value: origin,
 		})
 	}
 
-	redirect := a.config.AuthCodeURL(ticket)
+	redirect := a.Config.AuthCodeURL(ticket)
 	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
 // handleCallback is the route that the OAuth provider redirects the user
 // to after authorizing the application.
 func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request) {
-	stateCookie, err := r.Cookie(a.provider + "-state")
+	stateCookie, err := r.Cookie(a.Provider + "-state")
 	if err != nil {
 		api.RespondError(w, http.StatusBadRequest, err)
 		return
@@ -108,28 +109,28 @@ func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	token, err := a.config.Exchange(r.Context(), r.FormValue("code"))
+	token, err := a.Config.Exchange(r.Context(), r.FormValue("code"))
 	if err != nil {
 		api.RespondError(w, http.StatusBadRequest, errors.Wrap(err, "code exchange failed"))
 		return
 	}
 
-	ourToken := generateToken(a.provider + "-token")
+	ourToken := generateToken(a.Provider + "-token")
 	http.SetCookie(w, &http.Cookie{
-		Name:  a.provider + "-token",
+		Name:  a.Provider + "-token",
 		Value: ourToken,
 	})
 
-	if err = a.tokens.SaveToken(r.Context(), ourToken, a.provider, token); err != nil {
+	if err = a.tokens.SaveToken(r.Context(), ourToken, a.Provider, token); err != nil {
 		api.RespondError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to save token"))
 		return
 	}
 
-	originCookie, err := r.Cookie(a.provider + "-origin")
+	originCookie, err := r.Cookie(a.Provider + "-origin")
 	if err == nil {
 		// Clear this cookie; we don't need it anymore.
 		http.SetCookie(w, &http.Cookie{
-			Name:   a.provider + "-origin",
+			Name:   a.Provider + "-origin",
 			Value:  "",
 			MaxAge: -1,
 		})
@@ -141,11 +142,11 @@ func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request)
 
 // FromRequest returns the OAuth token from the request.
 func (a *OAuthAuthorizer) FromRequest(r *http.Request) (*oauth2.Token, error) {
-	cookie, err := r.Cookie(a.provider + "-token")
+	cookie, err := r.Cookie(a.Provider + "-token")
 	if err != nil {
-		return nil, fmt.Errorf("no such cookie %s-token", a.provider)
+		return nil, fmt.Errorf("no such cookie %s-token", a.Provider)
 	}
-	return a.tokens.RetrieveToken(r.Context(), cookie.Value, a.provider)
+	return a.tokens.RetrieveToken(r.Context(), cookie.Value, a.Provider)
 }
 
 // Use returns a middleware that authorizes requests. It is required for

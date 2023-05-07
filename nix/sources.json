@@ -1,4 +1,16 @@
 {
+    "genqlient": {
+        "branch": "main",
+        "description": "a truly type-safe Go GraphQL client",
+        "homepage": "",
+        "owner": "Khan",
+        "repo": "genqlient",
+        "rev": "677fa94d301c780b319877c74d7b9701e3aa70db",
+        "sha256": "0a4i6y0gm2mv7q8clv10h1lq7ikmjqyvgaj0vgk7zfll20wnqigx",
+        "type": "tarball",
+        "url": "https://github.com/Khan/genqlient/archive/677fa94d301c780b319877c74d7b9701e3aa70db.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "goapi-gen": {
         "branch": "main",
         "description": "This package contains a set of utilities for generating Go boilerplate code for services based on OpenAPI 3.0 API definitions",
@@ -41,11 +53,11 @@
         "homepage": "https://sqlc.dev",
         "owner": "kyleconroy",
         "repo": "sqlc",
-        "rev": "e4b1c18",
-        "sha256": "149j7fqmppnr7n0qxhblghg38flz8ahz7xd8xzjizpxpvw7vph74",
+        "rev": "140db73",
+        "sha256": "0kq9f605pwjvs2azc5bq6k6iji54yp1dmsnrb7lfj2rvilb4hiyz",
         "type": "tarball",
-        "url": "https://github.com/kyleconroy/sqlc/archive/e4b1c18.tar.gz",
+        "url": "https://github.com/kyleconroy/sqlc/archive/140db73.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "v1.18.0"
+        "version": "v1.17.2"
     }
 }

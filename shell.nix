@@ -34,10 +34,13 @@ let
 		name = "sqlc";
 		src = src.sqlc;
 		version = src.sqlc.version;
-		vendorSha256 = useForVersion src.sqlc "v1.18.0"
-			"0pppq4frcavvsllwrl3z8cpn1j23nkiqzh5h4142ajqrw83qydw0";
+		# vendorSha256 = useForVersion src.sqlc "v1.18.0"
+		# 	"0pppq4frcavvsllwrl3z8cpn1j23nkiqzh5h4142ajqrw83qydw0";
+		vendorSha256 = useForVersion src.sqlc "v1.17.2"
+			"0ih9siizn6nkvm4wi0474wxy323hklkhmdl52pql0qzqanmri4yb";
 		doCheck = false;
 		proxyVendor = true;
+		subPackages = [ "cmd/sqlc" ];
 	};
 
 	nixos-shell = pkgs.buildGoModule {
@@ -47,6 +50,15 @@ let
 		vendorSha256 = useForRev src.nixos-shell "e238cb5"
 			"0gjj1zn29vyx704y91g77zrs770y2rakksnn9dhg8r6na94njh5a";
 	};
+
+	genqlient = pkgs.buildGoModule {
+		name = "genqlient";
+		src = src.genqlient;
+		version = shortRev src.genqlient.rev;
+		vendorSha256 = useForRev src.genqlient "677fa94"
+			"150kwgywpivkc7q901ygdjjw8fgncwgcmkjj4lbrvkik7ynpm9dn";
+		subPackages = [ "." ];
+	};
 in
 
 pkgs.mkShell {
@@ -55,9 +67,16 @@ pkgs.mkShell {
 		gopls
 		gotools
 		niv
+		nodejs
 		goapi-gen
 		sqlc
+		sassc
+		genqlient
 		pgformatter
 		nixos-shell
 	];
+
+	shellHook = ''
+		PATH="$PWD/node_modules/.bin:$PATH"
+	'';
 }

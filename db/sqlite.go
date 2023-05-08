@@ -3,25 +3,32 @@ package db
 import (
 	"context"
 	"database/sql"
-
-	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-	"libdb.so/onlygithub/db/sqlite"
-	"libdb.so/onlygithub/onlygithub/auth"
+	"encoding/json"
+	"html/template"
 
 	_ "embed"
 
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+	"libdb.so/onlygithub"
+	"libdb.so/onlygithub/db/sqlitec"
+
 	_ "modernc.org/sqlite"
+
+	sqlite "modernc.org/sqlite"
+	libsqlite "modernc.org/sqlite/lib"
 )
 
-//go:embed sqlite/schema.sql
+//go:embed sqlitec/schema.sql
 var sqliteSchema string
 
 // SQLite implements various database interfaces using SQLite.
 type SQLite struct {
 	db *sql.DB
-	q  *sqlite.Queries
+	q  *sqlitec.Queries
 }
+
+var _ Database = (*SQLite)(nil)
 
 // NewSQLite creates a new SQLite database connection.
 func NewSQLite(uri string) (*SQLite, error) {
@@ -36,7 +43,7 @@ func NewSQLite(uri string) (*SQLite, error) {
 
 	return &SQLite{
 		db: db,
-		q:  sqlite.New(db),
+		q:  sqlitec.New(db),
 	}, nil
 }
 
@@ -45,15 +52,8 @@ func (s *SQLite) Close() error {
 	return s.db.Close()
 }
 
-// AsOAuthTokenService returns the database as an OAuthTokenService.
-func (s *SQLite) AsOAuthTokenService() auth.OAuthTokenService {
-	return (*sqliteOAuthTokenService)(s)
-}
-
-type sqliteOAuthTokenService SQLite
-
-func (s *sqliteOAuthTokenService) SaveToken(ctx context.Context, token, provider string, oauthToken *oauth2.Token) error {
-	err := s.q.SaveToken(ctx, sqlite.SaveTokenParams{
+func (s *SQLite) SaveToken(ctx context.Context, token, provider string, oauthToken *oauth2.Token) error {
+	err := s.q.SaveToken(ctx, sqlitec.SaveTokenParams{
 		Token:        token,
 		Provider:     provider,
 		AccessToken:  oauthToken.AccessToken,
@@ -64,8 +64,8 @@ func (s *sqliteOAuthTokenService) SaveToken(ctx context.Context, token, provider
 	return sqliteErr(err)
 }
 
-func (s *sqliteOAuthTokenService) RetrieveToken(ctx context.Context, token, provider string) (*oauth2.Token, error) {
-	v, err := s.q.RestoreToken(ctx, sqlite.RestoreTokenParams{
+func (s *SQLite) RetrieveToken(ctx context.Context, token, provider string) (*oauth2.Token, error) {
+	v, err := s.q.RestoreToken(ctx, sqlitec.RestoreTokenParams{
 		Token:    token,
 		Provider: provider,
 	})
@@ -80,6 +80,149 @@ func (s *sqliteOAuthTokenService) RetrieveToken(ctx context.Context, token, prov
 	}, nil
 }
 
+func (s *SQLite) User(ctx context.Context, id onlygithub.GitHubID) (*onlygithub.User, error) {
+	u, err := s.q.User(ctx, string(id))
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	user := &onlygithub.User{
+		ID:        onlygithub.GitHubID(u.ID),
+		Username:  u.Username,
+		Email:     u.Email,
+		RealName:  u.RealName,
+		Pronouns:  u.Pronouns,
+		AvatarURL: u.AvatarUrl,
+		JoinedAt:  u.JoinedAt,
+	}
+
+	if u.TierPrice != 0 {
+		user.Sponsorship = &onlygithub.Sponsorship{
+			Price:          onlygithub.Cents(u.TierPrice),
+			StartedAt:      u.TierStartedAt,
+			RenewedAt:      u.TierRenewedAt,
+			IsOneTime:      u.TierIsOneTime,
+			IsCustomAmount: u.TierIsCustomAmount,
+		}
+
+		if u.TierID != "" {
+			user.Sponsorship.Tier = &onlygithub.Tier{
+				ID:          onlygithub.GitHubID(u.TierID),
+				Name:        u.TierName,
+				Price:       onlygithub.Cents(u.TierPrice),
+				Description: template.HTML(u.TierDescription),
+			}
+		}
+	}
+
+	return user, nil
+}
+
+func (s *SQLite) UpdateUser(ctx context.Context, user *onlygithub.User) error {
+	err := s.q.UpdateUser(ctx, sqlitec.UpdateUserParams{
+		ID:        string(user.ID),
+		Username:  user.Username,
+		Email:     user.Email,
+		RealName:  user.RealName,
+		Pronouns:  user.Pronouns,
+		AvatarUrl: user.AvatarURL,
+	})
+	return sqliteErr(err)
+}
+
+func (s *SQLite) Owner(ctx context.Context) (*onlygithub.User, error) {
+	u, err := s.q.Owner(ctx)
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return &onlygithub.User{
+		ID:        onlygithub.GitHubID(u.ID),
+		Username:  u.Username,
+		Email:     u.Email,
+		RealName:  u.RealName,
+		Pronouns:  u.Pronouns,
+		AvatarURL: u.AvatarUrl,
+		JoinedAt:  u.JoinedAt,
+	}, nil
+}
+
+func (s *SQLite) MakeOwner(ctx context.Context, username string) error {
+	err := s.q.MakeOwner(ctx, username)
+	return sqliteErr(err)
+}
+
+func (s *SQLite) SiteConfig(ctx context.Context) (*onlygithub.SiteConfig, error) {
+	cfg, _ := s.q.SiteConfig(ctx)
+	if cfg != nil {
+		var obj *onlygithub.SiteConfig
+		if err := json.Unmarshal([]byte(cfg), &obj); err != nil {
+			return nil, sqliteErr(err)
+		}
+		if obj != nil {
+			return obj, nil
+		}
+	}
+
+	return onlygithub.DefaultSiteConfig(), nil
+}
+
+func (s *SQLite) SetSiteConfig(ctx context.Context, cfg *onlygithub.SiteConfig) error {
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		return sqliteErr(err)
+	}
+
+	err = s.q.SetSiteConfig(ctx, []byte(b))
+	return sqliteErr(err)
+}
+
+func (s *SQLite) UserConfig(ctx context.Context, id onlygithub.GitHubID) (*onlygithub.UserConfig, error) {
+	cfg, err := s.q.UserConfig(ctx, string(id))
+	if err == nil {
+		var obj *onlygithub.UserConfig
+		if err := json.Unmarshal([]byte(cfg), &obj); err != nil {
+			return nil, sqliteErr(err)
+		}
+		if obj != nil {
+			return obj, nil
+		}
+	}
+
+	return onlygithub.DefaultUserConfig(), nil
+}
+
+func (s *SQLite) SetUserConfig(ctx context.Context, id onlygithub.GitHubID, cfg *onlygithub.UserConfig) error {
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		return sqliteErr(err)
+	}
+
+	err = s.q.SetUserConfig(ctx, sqlitec.SetUserConfigParams{
+		UserConfig: []byte(b),
+		ID:         string(id),
+	})
+	return sqliteErr(err)
+}
+
 func sqliteErr(err error) error {
-	return err
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return onlygithub.ErrNotFound
+	}
+
+	var sqliteErr *sqlite.Error
+	if errors.As(err, &sqliteErr) {
+		switch sqliteErr.Code() {
+		case libsqlite.SQLITE_CONSTRAINT:
+			return errors.New("already exists")
+		case libsqlite.SQLITE_TOOBIG:
+			return errors.New("data too big")
+		}
+	}
+
+	return onlygithub.WrapInternalError(err)
 }

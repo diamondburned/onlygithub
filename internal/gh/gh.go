@@ -11,7 +11,7 @@ import (
 
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
-	"libdb.so/onlygithub/onlygithub"
+	"libdb.so/onlygithub"
 
 	genqlient "github.com/Khan/genqlient/graphql"
 )
@@ -36,6 +36,7 @@ type Paginator[T any] interface {
 type Client struct {
 	*githubv4.Client
 	genqlient genqlient.Client
+	ctx       context.Context
 }
 
 // NewClient creates a new GitHub API client.
@@ -45,12 +46,13 @@ func NewClient(ctx context.Context, tokenSource oauth2.TokenSource) *Client {
 	return &Client{
 		Client:    githubv4.NewClient(client),
 		genqlient: genqlient.NewClient("https://api.github.com/graphql", client),
+		ctx:       ctx,
 	}
 }
 
 // Me returns the current user.
-func (c *Client) Me(ctx context.Context) (*onlygithub.User, error) {
-	resp, err := me(ctx, c.genqlient)
+func (c *Client) Me() (*onlygithub.User, error) {
+	resp, err := me(c.ctx, c.genqlient)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +67,11 @@ func (c *Client) Me(ctx context.Context) (*onlygithub.User, error) {
 }
 
 // Sponsors returns a paginator for fetching sponsors.
-func (c *Client) Sponsors(ctx context.Context, limit int) Paginator[onlygithub.User] {
+func (c *Client) Sponsors(limit int) Paginator[onlygithub.User] {
 	return &paginator[sponsorsResponse, onlygithub.User]{
-		client: c,
-		ctx:    ctx,
-		limit:  limit,
-		queryFunc: func(ctx context.Context, cursor string, limit int32) (*sponsorsResponse, error) {
-			return sponsors(ctx, c.genqlient, cursor, limit)
+		limit: limit,
+		queryFunc: func(cursor string, limit int32) (*sponsorsResponse, error) {
+			return sponsors(c.ctx, c.genqlient, cursor, limit)
 		},
 		mapFunc: func(resp *sponsorsResponse) (paginatedResource[onlygithub.User], error) {
 			users := make([]onlygithub.User, 0, len(resp.Viewer.SponsorshipsAsMaintainer.Edges))
@@ -79,16 +79,21 @@ func (c *Client) Sponsors(ctx context.Context, limit int) Paginator[onlygithub.U
 				node := edge.Node
 				user := onlygithub.User{
 					Sponsorship: &onlygithub.Sponsorship{
-						Tier: onlygithub.Tier{
-							ID:             onlygithub.GitHubID(node.Tier.Id),
-							Name:           node.Tier.Name,
-							Price:          onlygithub.Cents(node.Tier.MonthlyPriceInCents),
-							Description:    template.HTML(node.Tier.DescriptionHTML),
-							IsOneTime:      node.Tier.IsOneTime,
-							IsCustomAmount: node.Tier.IsCustomAmount,
-						},
-						SponsoredAt: node.TierSelectedAt,
+						Price:          onlygithub.Cents(node.Tier.MonthlyPriceInCents),
+						StartedAt:      node.CreatedAt,
+						RenewedAt:      node.TierSelectedAt,
+						IsOneTime:      node.Tier.IsOneTime,
+						IsCustomAmount: node.Tier.IsCustomAmount,
 					},
+				}
+
+				if !node.Tier.IsCustomAmount {
+					user.Sponsorship.Tier = &onlygithub.Tier{
+						ID:          onlygithub.GitHubID(node.Tier.Id),
+						Name:        node.Tier.Name,
+						Price:       onlygithub.Cents(node.Tier.MonthlyPriceInCents),
+						Description: template.HTML(node.Tier.DescriptionHTML),
+					}
 				}
 
 				switch sponsor := node.SponsorEntity.(type) {
@@ -119,23 +124,24 @@ func (c *Client) Sponsors(ctx context.Context, limit int) Paginator[onlygithub.U
 
 func (c *Client) Tiers(ctx context.Context, limit int) Paginator[onlygithub.Tier] {
 	return &paginator[tiersResponse, onlygithub.Tier]{
-		client: c,
-		ctx:    ctx,
-		limit:  limit,
-		queryFunc: func(ctx context.Context, cursor string, limit int32) (*tiersResponse, error) {
-			return tiers(ctx, c.genqlient, cursor, limit)
+		limit: limit,
+		queryFunc: func(cursor string, limit int32) (*tiersResponse, error) {
+			return tiers(c.ctx, c.genqlient, cursor, limit)
 		},
 		mapFunc: func(resp *tiersResponse) (paginatedResource[onlygithub.Tier], error) {
 			tiers := make([]onlygithub.Tier, 0, len(resp.Viewer.SponsorsListing.Tiers.Edges))
 			for _, edge := range resp.Viewer.SponsorsListing.Tiers.Edges {
 				node := edge.Node
+				if node.IsCustomAmount {
+					// Skip. I might come to regret this.
+					continue
+				}
+
 				tiers = append(tiers, onlygithub.Tier{
-					ID:             onlygithub.GitHubID(node.Id),
-					Name:           node.Name,
-					Price:          onlygithub.Cents(node.MonthlyPriceInCents),
-					Description:    template.HTML(node.DescriptionHTML),
-					IsOneTime:      node.IsOneTime,
-					IsCustomAmount: node.IsCustomAmount,
+					ID:          onlygithub.GitHubID(node.Id),
+					Name:        node.Name,
+					Price:       onlygithub.Cents(node.MonthlyPriceInCents),
+					Description: template.HTML(node.DescriptionHTML),
 				})
 			}
 			return paginatedResource[onlygithub.Tier]{
@@ -149,9 +155,8 @@ func (c *Client) Tiers(ctx context.Context, limit int) Paginator[onlygithub.Tier
 
 type paginator[RespT, ResourceT any] struct {
 	client    *Client
-	ctx       context.Context
 	limit     int
-	queryFunc func(ctx context.Context, cursor string, limit int32) (*RespT, error)
+	queryFunc func(cursor string, limit int32) (*RespT, error)
 	mapFunc   func(*RespT) (paginatedResource[ResourceT], error)
 
 	Cursor  string `json:"cursor"`
@@ -175,7 +180,7 @@ func (p *paginator[RespT, ResourceT]) UnmarshalJSON(data []byte) error {
 }
 
 func (p *paginator[RespT, ResourceT]) Next() ([]ResourceT, error) {
-	resp, err := p.queryFunc(p.ctx, p.Cursor, int32(p.limit))
+	resp, err := p.queryFunc(p.Cursor, int32(p.limit))
 	if err != nil {
 		return nil, err
 	}

@@ -5,13 +5,15 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/diamondburned/hrt"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
-	"libdb.so/onlygithub/onlygithub/api"
+	"libdb.so/onlygithub/internal/api"
 )
 
 type ctxKey uint8
@@ -91,7 +93,11 @@ func (a *OAuthAuthorizer) handleLogin(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	redirect := a.Config.AuthCodeURL(ticket)
+	config := *a.Config
+	config.RedirectURL = "http://" + r.Host + r.URL.Path + "/callback"
+	log.Println("set callback url to", config.RedirectURL)
+
+	redirect := config.AuthCodeURL(ticket)
 	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
@@ -100,29 +106,31 @@ func (a *OAuthAuthorizer) handleLogin(w http.ResponseWriter, r *http.Request) {
 func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request) {
 	stateCookie, err := r.Cookie(a.Provider + "-state")
 	if err != nil {
-		api.RespondError(w, http.StatusBadRequest, err)
+		api.RespondError(w, r, hrt.WrapHTTPError(http.StatusBadRequest, err))
 		return
 	}
 
 	if stateCookie.Value != r.FormValue("state") {
-		api.RespondError(w, http.StatusBadRequest, errors.New("invalid state"))
+		api.RespondError(w, r, hrt.NewHTTPError(http.StatusBadRequest, "invalid state"))
 		return
 	}
 
 	token, err := a.Config.Exchange(r.Context(), r.FormValue("code"))
 	if err != nil {
-		api.RespondError(w, http.StatusBadRequest, errors.Wrap(err, "code exchange failed"))
+		api.RespondError(w, r, hrt.WrapHTTPError(http.StatusBadRequest, errors.Wrap(err, "code exchange failed")))
 		return
 	}
 
 	ourToken := generateToken(a.Provider + "-token")
 	http.SetCookie(w, &http.Cookie{
-		Name:  a.Provider + "-token",
-		Value: ourToken,
+		Name:     a.Provider + "-token",
+		Value:    ourToken,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	if err = a.tokens.SaveToken(r.Context(), ourToken, a.Provider, token); err != nil {
-		api.RespondError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to save token"))
+		api.RespondError(w, r, hrt.WrapHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to save token")))
 		return
 	}
 
@@ -181,6 +189,6 @@ func (a *OAuthAuthorizer) RequireOrRedirect(redirectOtherwise string) func(http.
 
 // TokenFromRequest returns the OAuth token from the request.
 func TokenFromRequest(r *http.Request) *oauth2.Token {
-	token := r.Context().Value(oauthTokenCtxKey).(*oauth2.Token)
+	token, _ := r.Context().Value(oauthTokenCtxKey).(*oauth2.Token)
 	return token
 }

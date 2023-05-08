@@ -5,18 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/rs/xid"
 )
-
-// ErrorResponse is a response that contains an error message.
-type ErrorResponse struct {
-	Message string `json:"message"`
-}
 
 // GitHubID is a GitHub ID for a resource originating from GitHub.
 type GitHubID string
@@ -90,13 +87,6 @@ type Tier struct {
 	Price Cents `json:"price"`
 	// Description is the description of the tier.
 	Description template.HTML `json:"description,omitempty"`
-	// IsOneTime is true if the tier is a one-time payment. Otherwise, it is a
-	// monthly subscription.
-	IsOneTime bool `json:"isOneTime,omitempty"`
-	// IsCustomAmount is true if the tier is a custom amount. Otherwise, it is
-	// predefined. Note that for custom amounts, the actual tier is derived from
-	// the lowest predefined tier that is greater than the custom amount.
-	IsCustomAmount bool `json:"isCustomAmount,omitempty"`
 }
 
 // Tiers is a list of Tier. Tiers should be ordered from lowest to highest.
@@ -147,11 +137,23 @@ type User struct {
 
 // Sponsorship describes a sponsorship of a user.
 type Sponsorship struct {
+	// Price is the price of the sponsorship in cents. It may not correspond to
+	// any tier.
+	Price Cents `json:"price"`
+	// StartedAt is the time the user was first sponsored.
+	StartedAt time.Time `json:"firstSponsoredAt"`
+	// RenewedAt is the time the user last renewed their sponsorship.
+	RenewedAt time.Time `json:"renewedAt"`
+	// IsOneTime is true if the tier is a one-time payment. Otherwise, it is a
+	// monthly subscription.
+	IsOneTime bool `json:"isOneTime,omitempty"`
+	// IsCustomAmount is true if the tier is a custom amount. Otherwise, it is
+	// predefined. Note that for custom amounts, the actual tier is derived from
+	// the lowest predefined tier that is greater than the custom amount.
+	IsCustomAmount bool `json:"isCustomAmount,omitempty"`
 	// Tier is the tier the user is currently on. If null, the user is not
-	// currently on any tier.
-	Tier Tier `json:"tier"`
-	// SponsoredAt is the time the user was sponsored.
-	SponsoredAt time.Time `json:"sponsoredAt"`
+	// currently on any tier or is on a custom tier.
+	Tier *Tier `json:"tier"`
 }
 
 // Visibility is the visibility of a piece of content.
@@ -245,4 +247,168 @@ type Reaction struct {
 	// zero, then name should be displayed instead. If there is an asset, then
 	// it must be of type image.
 	AssetID ID `json:"assetID"`
+}
+
+// SiteConfig describes the configuration of the entire site. There's only one
+// site-wide configuration.
+type SiteConfig struct {
+	// OwnerID is the ID of the owner of the site. This field should not be
+	// modified; the user should manually set the owner ID in the database.
+	OwnerID GitHubID `json:"ownerID,omitempty"`
+	// BannerURL is the URL of the banner image that will be displayed on
+	// the home page.
+	BannerURL string `json:"bannerURL,omitempty"`
+	// Description is the description of the site.
+	Description template.HTML `json:"bio,omitempty"`
+	// About is the about section of the site.
+	About template.HTML `json:"about,omitempty"`
+	// Socials is a list of social media accounts to display.
+	Socials Socials `json:"socials,omitempty"`
+	// AllowDMs controls whether or not users can send DMs to the
+	// owner.
+	AllowDMs bool `json:"allowDMs,omitempty"`
+	// AllowComments controls whether or not users can comment on the
+	// homepage.
+	AllowComments bool `json:"allowComments,omitempty"`
+	// TierWhitelist controls whether or not tiers must be explicitly
+	// whitelisted in order to access sponsored content.
+	TierWhitelist *TierWhitelist `json:"tierWhitelist,omitempty"`
+	// CustomCSS is custom CSS that will be injected into the page.
+	// Each page will be identified by a unique ID that can be used to
+	// scope the CSS to that page.
+	CustomCSS string `json:"customCSS,omitempty"`
+}
+
+// DefaultSiteConfig returns the default site-wide configuration.
+func DefaultSiteConfig() *SiteConfig {
+	return &SiteConfig{
+		Socials: Socials{
+			ShowGitHub: true,
+		},
+		AllowDMs:      true,
+		AllowComments: true,
+	}
+}
+
+// UserConfig describes the configuration of a user.
+type UserConfig struct {
+	// ShowComments controls whether or not comments are shown on the
+	// homepage.
+	ShowComments bool `json:"showComments,omitempty"`
+	// Anonymous controls whether or not the user is anonymous. If true, then
+	// user information will not be shown to other users.
+	Anonymous bool `json:"anonymous,omitempty"`
+}
+
+// DefaultUserConfig returns the default configuration for a user.
+func DefaultUserConfig() *UserConfig {
+	return &UserConfig{
+		ShowComments: true,
+	}
+}
+
+// Socials is a list of social media accounts.
+type Socials struct {
+	// Twitter is the Twitter username.
+	Twitter string `json:"twitter,omitempty"`
+	// YouTube is the YouTube username.
+	YouTube string `json:"youtube,omitempty"`
+	// GitHub is the GitHub username.
+	GitHub string `json:"github,omitempty"`
+	// Twitch is the Twitch username.
+	Twitch string `json:"twitch,omitempty"`
+	// Discord is the Discord username.
+	Discord string `json:"discord,omitempty"`
+	// Instagram is the Instagram username.
+	Instagram string `json:"instagram,omitempty"`
+	// Matrix is the Matrix username.
+	Matrix string `json:"matrix,omitempty"`
+	// Reddit is the Reddit username.
+	Reddit string `json:"reddit,omitempty"`
+	// Facebook is the Facebook username.
+	Facebook string `json:"facebook,omitempty"`
+	// Mastodon is the Mastodon username.
+	Mastodon string `json:"mastodon,omitempty"`
+	// ShowGitHub controls whether or not the GitHub icon is shown.
+	// The owner GitHub will be shown.
+	ShowGitHub bool `json:"showGitHub,omitempty"`
+}
+
+// TierWhitelist is a list of tiers that are allowed to access sponsored
+// content.
+type TierWhitelist struct {
+	// Requires is a list of requirements that a tier must satisfy in order to
+	// be allowed to access sponsored content.
+	Requires []TierRequirement
+	// AllowCustom, if true, means that custom amounts are allowed to access
+	// sponsored content as long as they are greater than any of the tiers
+	// specified in Requires.
+	AllowCustom bool
+}
+
+// TierRequirement is a description of a tier (or what a tier should have) that
+// the author desires. At least one of these fields must be set.
+//
+// Some fields can have values surrounded by slashes to indicate regular
+// expressions. For example, if the name is "/^Tier [0-9]+$/", then it will
+// match any tier name that starts with "Tier " and ends with a number.
+//
+// The following fields can have regular expressions:
+// - Name
+// - Description
+type TierRequirement struct {
+	Name        string `json:"name,omitempty"`
+	Price       Cents  `json:"price,omitempty"`
+	Description string `json:"description,omitempty"`
+	// AllowHigher means that tiers with a higher price than the one specified
+	// are allowed to access sponsored content.
+	AllowHigher bool `json:"allowHigher,omitempty"`
+}
+
+// Validate validates the TierRequirement.
+func (r TierRequirement) Validate() error {
+	if r.Name == "" && r.Price == 0 && r.Description == "" {
+		return fmt.Errorf("at least one of name, price, or description must be set")
+	}
+	if isRegex(r.Name) {
+		_, err := regexp.Compile(trimRegex(r.Name))
+		if err != nil {
+			return errors.Wrap(err, "invalid name regex")
+		}
+	}
+	if isRegex(r.Description) {
+		_, err := regexp.Compile(trimRegex(r.Name))
+		if err != nil {
+			return errors.Wrap(err, "invalid description regex")
+		}
+	}
+	return nil
+}
+
+// Matches returns true if the given tier matches the requirement.
+func (r TierRequirement) Matches(t Tier) bool {
+	return false ||
+		matches(r.Name, t.Name) ||
+		matches(r.Description, string(t.Description)) ||
+		(r.Price != 0 && t.Price == r.Price) ||
+		(r.Price != 0 && r.AllowHigher && r.Price >= r.Price)
+}
+
+func isRegex(str string) bool {
+	return strings.HasPrefix(str, "/") && strings.HasSuffix(str, "/")
+}
+
+func trimRegex(str string) string {
+	return strings.TrimPrefix(strings.TrimSuffix(str, "/"), "/")
+}
+
+func matches(maybeRegex, str string) bool {
+	if maybeRegex == "" {
+		return false
+	}
+	if isRegex(maybeRegex) {
+		re := regexp.MustCompile(trimRegex(maybeRegex))
+		return re.MatchString(str)
+	}
+	return maybeRegex == str
 }

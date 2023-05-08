@@ -29,7 +29,7 @@ bindings:
   GitRefname: { type: string }
   GitSSHRemote: { type: string }
   GitTimestamp: { type: time.Time }
-  HTML: { type: template.HTML }
+  HTML: { type: string }
   ID: { type: string }
   Int: { type: int32 }
   PreciseDateTime: { type: time.Time }

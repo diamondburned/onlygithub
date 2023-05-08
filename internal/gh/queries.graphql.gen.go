@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"template"
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
@@ -472,7 +471,7 @@ type sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsor
 	// The description of the tier.
 	Description string `json:"description"`
 	// The tier description rendered to HTML
-	DescriptionHTML template.HTML `json:"descriptionHTML"`
+	DescriptionHTML string `json:"descriptionHTML"`
 }
 
 // GetId returns sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipTierSponsorsTier.Id, and is useful for accessing the field via an interface.
@@ -506,7 +505,7 @@ func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSpo
 }
 
 // GetDescriptionHTML returns sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipTierSponsorsTier.DescriptionHTML, and is useful for accessing the field via an interface.
-func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipTierSponsorsTier) GetDescriptionHTML() template.HTML {
+func (v *sponsorsViewerUserSponsorshipsAsMaintainerSponsorshipConnectionEdgesSponsorshipEdgeNodeSponsorshipTierSponsorsTier) GetDescriptionHTML() string {
 	return v.DescriptionHTML
 }
 
@@ -621,7 +620,7 @@ type tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsTierE
 	// The description of the tier.
 	Description string `json:"description"`
 	// The tier description rendered to HTML
-	DescriptionHTML template.HTML `json:"descriptionHTML"`
+	DescriptionHTML string `json:"descriptionHTML"`
 }
 
 // GetId returns tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsTierEdgeNodeSponsorsTier.Id, and is useful for accessing the field via an interface.
@@ -655,7 +654,7 @@ func (v *tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsT
 }
 
 // GetDescriptionHTML returns tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsTierEdgeNodeSponsorsTier.DescriptionHTML, and is useful for accessing the field via an interface.
-func (v *tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsTierEdgeNodeSponsorsTier) GetDescriptionHTML() template.HTML {
+func (v *tiersViewerUserSponsorsListingTiersSponsorsTierConnectionEdgesSponsorsTierEdgeNodeSponsorsTier) GetDescriptionHTML() string {
 	return v.DescriptionHTML
 }
 

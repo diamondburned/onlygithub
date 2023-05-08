@@ -270,6 +270,10 @@ type SiteConfig struct {
 	// AllowComments controls whether or not users can comment on the
 	// homepage.
 	AllowComments bool `json:"allowComments,omitempty"`
+	// HomepageVisibility controls who can see the homepage.
+	// By default, only the owner can see the homepage. They're expected to
+	// change this in the admin panel.
+	HomepageVisibility Visibility `json:"homepageVisibility,omitempty"`
 	// TierWhitelist controls whether or not tiers must be explicitly
 	// whitelisted in order to access sponsored content.
 	TierWhitelist *TierWhitelist `json:"tierWhitelist,omitempty"`

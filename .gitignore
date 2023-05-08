@@ -1,0 +1,6 @@
+.env
+*.db
+*.db*
+/node_modules
+/config.toml
+/build

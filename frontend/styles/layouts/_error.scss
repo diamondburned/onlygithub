@@ -1,0 +1,28 @@
+#error {
+  height: 100%;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  background-color: black;
+
+  img {
+    max-height: min(50vh, 400px);
+    max-width: 100%;
+    border: 1.5px solid white;
+  }
+
+  p {
+    font-size: 1.2rem;
+
+    &::before {
+      content: "Error: ";
+      color: #ff0000;
+      font-weight: bold;
+    }
+  }
+}

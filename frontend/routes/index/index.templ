@@ -1,0 +1,84 @@
+package index
+
+import "libdb.so/onlygithub/internal/templutil"
+import "libdb.so/onlygithub/frontend/components"
+import "libdb.so/onlygithub/frontend/layouts"
+import "libdb.so/onlygithub"
+import "net/http"
+
+type indexOpts struct {
+	Me *onlygithub.User // optional
+}
+
+templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, opts indexOpts) {
+	@layouts.Main("", site, owner, layouts.MainOpts{Me: opts.Me}) {
+		<main id="index">
+			<header>
+				<div class="user-banner">
+					if site.BannerURL != "" {
+						<img src={ site.BannerURL } alt="banner"/>
+					}
+				</div>
+	
+				<div class="user-info">
+					<img class="user-avatar" src={ owner.AvatarURL } alt="avatar"/>
+					<h1 class="user-name">
+						if owner.RealName != "" {
+							<span class="real-name">{ owner.RealName }</span>
+							<br />
+							<small class="username">{ owner.Username }</small>
+						} else {
+							<span class="username">{ owner.Username }</span>
+						}
+					</h1>
+					<p class="site-description">
+						@templutil.UnsafeHTML(site.Description)
+					</p>
+				</div>
+			</header>
+	
+			<nav>
+				<div></div>
+				<ul>
+					<li>
+						@navButton(r, "/", "Home")
+					</li>
+					<li>
+						@navButton(r, "/about", "About")
+					</li>
+					<li>
+						@navButton(r, "/membership", "Membership")
+					</li>
+				</ul>
+				<div class="actions">
+					if opts.Me != nil && opts.Me.ID == owner.ID {
+						<a href="/create" role="button">
+							@components.Icon("add", components.InlineIcon)
+						</a>
+					}
+					if opts.Me != nil {
+						<a href="/settings" role="button" title="Settings">
+							@components.Icon("settings", components.InlineIcon)
+						</a>
+					} else {
+						<a href="/login" role="button">
+							@components.Icon("login", components.InlineIcon)
+						</a>
+					}
+				</div>
+			</nav>
+	
+			<section>
+				<h2>Latest Posts</h2>
+			</section>
+
+			<aside>
+
+			</aside>
+		</main>
+	}
+}
+
+templ navButton(r *http.Request, dst templ.SafeURL, name string) {
+	<a href={ dst } data-active?={ r.URL.Path == string(dst) }>{ name }</a>
+}

@@ -1,0 +1,68 @@
+@use "colors" as *;
+
+$mobile-width: 500px;
+$error-color: #e21143;
+$brand-gradient: linear-gradient(60deg, #55cdfc, #f7a8b8);
+
+$color-variation: 10%;
+$transparency: 0.2;
+$radius: 0.4em;
+
+:root {
+  --color-variation: 10%;
+  --transparency: 0.2;
+  --radius: 0.4em;
+}
+
+$light-foreground: $black;
+$light-background: $white;
+$light-primary: $blue;
+$light-primary-hover: rgba($blue, 0.4);
+$light-success: $green;
+$light-warning: $orange;
+$light-error: $red;
+$light-dull: $gray;
+$light-border: 1px solid $light-dull;
+$light-shadow: 0 0 0.2em rgba($light-dull, $transparency);
+$light-overlay: rgba($light-foreground, $transparency);
+
+$dark-foreground: $white;
+$dark-background: $black;
+$dark-primary: $blue;
+$dark-primary-hover: rgba($blue, 0.4);
+$dark-success: $green;
+$dark-warning: $orange;
+$dark-error: $red;
+$dark-dull: $gray;
+$dark-border: 1px solid $dark-dull;
+$dark-shadow: 0 0 0.2em rgba($dark-dull, $transparency);
+$dark-overlay: rgba($dark-foreground, $transparency);
+
+:root {
+  --foreground: #{$light-foreground};
+  --background: #{$light-background};
+  --primary: #{$light-primary};
+  --primary-hover: #{$light-primary-hover};
+  --success: #{$light-success};
+  --warning: #{$light-warning};
+  --error: #{$light-error};
+  --dull: #{$light-dull};
+  --border: #{$light-border};
+  --shadow: #{$light-shadow};
+  --overlay: #{$light-overlay};
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: #{$dark-foreground};
+    --background: #{$dark-background};
+    --primary: #{$dark-primary};
+    --success: #{$dark-success};
+    --warning: #{$dark-warning};
+    --error: #{$dark-error};
+    --dull: #{$dark-dull};
+    --border: #{$dark-border};
+    --shadow: #{$dark-shadow};
+    --overlay: #{$dark-overlay};
+  }
+}

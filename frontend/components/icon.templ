@@ -1,0 +1,23 @@
+package components
+
+type IconFlags uint
+
+const (
+	InlineIcon IconFlags = 1 << iota
+	LargeIcon
+)
+
+func iconClasses(flags IconFlags) string {
+	classes := "material-icons"
+	if flags&InlineIcon != 0 {
+		classes += " inline"
+	}
+	if flags&LargeIcon != 0 {
+		classes += " large"
+	}
+	return classes
+}
+
+templ Icon(name string, flags IconFlags) {
+	<span class={ iconClasses(flags) }>{ name }</span>
+}

@@ -1,0 +1,25 @@
+package layouts
+
+import (
+	"net/http"
+	"strconv"
+
+	"libdb.so/onlygithub/frontend/components"
+	"libdb.so/onlygithub/internal/api"
+)
+
+func RenderError(w http.ResponseWriter, r *http.Request, err error) {
+	code, message := api.ExtractError(r, err)
+	w.WriteHeader(code)
+	Error(code, message).Render(r.Context(), w)
+}
+
+templ Error(code int, message string) {
+	<!DOCTYPE html>
+	@components.Head(components.HeadOpts{Title: "Error – onlygithub"})
+
+	<body id="error">
+		<img src={ "https://http.cat/" + strconv.Itoa(code) } alt={ "http.cat for " + strconv.Itoa(code) }/>
+		<p>{ message }</p>
+	</body>
+}

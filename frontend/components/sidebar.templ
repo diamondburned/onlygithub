@@ -1,0 +1,52 @@
+package components
+
+import "libdb.so/onlygithub"
+
+type SidebarOpts struct {
+	Me *onlygithub.User // current user, optional
+}
+
+templ Sidebar(opts SidebarOpts) {
+	<nav>
+		if opts.Me != nil {
+			<div class="current-opts.Me">
+				<img class="avatar" src={ opts.Me.AvatarURL }/>
+				<p class="opts.Mename">{ opts.Me.Username }</p>
+			</div>
+		}
+		<ul>
+			<li>
+				<a href="/">
+					@Icon("home", InlineIcon)
+					Home
+				</a>
+			</li>
+			<li>
+				<a href="/">
+					@Icon("home", InlineIcon)
+					Home
+				</a>
+			</li>
+			<li>
+				<a href="/settings">
+					@Icon("settings", InlineIcon)
+					Settings
+				</a>
+			</li>
+			<li>
+				if opts.Me != nil {
+					<a href="/logout">
+						@Icon("logout", InlineIcon)
+						Logout
+					</a>
+				} else {
+					<a href="/login">
+						@Icon("login", InlineIcon)
+						Login
+					</a>
+				}
+			</li>
+		</ul>
+	</nav>
+}
+

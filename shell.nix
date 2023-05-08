@@ -59,6 +59,21 @@ let
 			"150kwgywpivkc7q901ygdjjw8fgncwgcmkjj4lbrvkik7ynpm9dn";
 		subPackages = [ "." ];
 	};
+
+	templ = pkgs.buildGoModule {
+		name = "templ";
+		src = src.templ;
+		version = shortRev src.templ.rev;
+		vendorSha256 = useForRev src.templ "e1ca5e2"
+			"07l03bdmfq67qdzqalg6q3y7mvb99byryvkq3ylq753djpa3nkhq";
+		subPackages = [ "cmd/templ" ];
+	};
+
+	dart-sass = import src.nix-dart-sass {
+		inherit pkgs;
+		sha256 = "0vdqcqkdbk1n71lbjkmravpw43h8lxc8dgk6sanlscnm98nlgc01";
+		version = "1.62.1";
+	};
 in
 
 pkgs.mkShell {
@@ -66,17 +81,19 @@ pkgs.mkShell {
 		go
 		gopls
 		gotools
+		air
 		niv
-		nodejs
 		goapi-gen
+		templ
 		sqlc
-		sassc
+		dart-sass
 		genqlient
 		pgformatter
 		nixos-shell
+		nodePackages.prettier # for scss mostly
 	];
 
 	shellHook = ''
-		PATH="$PWD/node_modules/.bin:$PATH"
+		export DATABASE_URL="sqlite://./onlygithub.dev.db"
 	'';
 }

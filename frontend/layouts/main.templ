@@ -1,0 +1,21 @@
+package layouts
+
+import "libdb.so/onlygithub"
+import "libdb.so/onlygithub/frontend/components"
+
+type MainOpts struct {
+	Me *onlygithub.User // current user, optional
+}
+
+// omitted:
+// @components.Sidebar(components.SidebarOpts{Me: opts.Me})
+
+templ Main(title string, site *onlygithub.SiteConfig, owner *onlygithub.User, opts MainOpts) {
+  <!DOCTYPE html>
+	@components.Head(components.HeadOpts{Title: title, Owner: owner})
+
+	<body class="main">
+		{ children... }
+	</body>
+}
+

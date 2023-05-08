@@ -1,0 +1,117 @@
+#index {
+  header {
+    .user-banner {
+      aspect-ratio: 20/9;
+      width: 100%;
+      height: auto;
+      max-height: 65vh;
+
+      background-color: #4158d0;
+      background-image: linear-gradient(43deg, #4158d0 0%, #c850c0 46%, #ffcc70 100%);
+
+      // Replicate the shadow that the white background casts onto the banner.
+      box-shadow: 0 -100px 1em -100px rgba(0, 0, 0, 0.45) inset;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .user-avatar {
+      width: 10em;
+      height: 10em;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-top: calc(10em / -2);
+      box-shadow: 0 0 1em rgba(0, 0, 0, 0.45);
+    }
+
+    .user-name {
+      text-align: center;
+      small {
+        font-weight: normal;
+        font-size: 0.8em;
+      }
+    }
+
+    p:empty {
+      display: none;
+    }
+  }
+
+  nav {
+    border-bottom: var(--border);
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      li {
+        display: contents;
+      }
+    }
+
+    a {
+      text-decoration: none;
+      text-align: center;
+
+      color: var(--foreground);
+      padding: 0.5em;
+      border-bottom: 2px solid transparent;
+
+      &[data-active] {
+        color: var(--primary);
+        font-weight: bold;
+        border-bottom: 2px solid var(--primary);
+      }
+
+      &:hover {
+        border-color: var(--primary-hover);
+      }
+
+      transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+    }
+
+    .actions {
+      margin-left: auto;
+      margin-right: 0.5em;
+      display: flex;
+
+      opacity: 0.5;
+      transition: opacity 0.15s ease-in-out;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      a {
+        color: var(--foreground);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.35em 0.5em;
+
+        &:hover {
+          border-color: var(--dull);
+        }
+      }
+    }
+  }
+
+  section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 5vw, 2rem);
+  }
+}

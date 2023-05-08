@@ -23,6 +23,18 @@
         "url": "https://github.com/discord-gophers/goapi-gen/archive/8ca3a5b6d47053862aff66b6cc699529485f97bd.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nix-dart-sass": {
+        "branch": "master",
+        "description": "Dart Sass standalone implementation nix derivation",
+        "homepage": null,
+        "owner": "polyfooly",
+        "repo": "nix-dart-sass",
+        "rev": "e758ad15a4875fa7661f94f28f01a1b7cf579b84",
+        "sha256": "03kmz5r4jv0j8x9asz4y19xm1chwgbsizf9cyadjqsnvgv5rb4i6",
+        "type": "tarball",
+        "url": "https://github.com/polyfooly/nix-dart-sass/archive/e758ad15a4875fa7661f94f28f01a1b7cf579b84.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixos-shell": {
         "branch": "master",
         "description": "spawn ephemeral development environments in containers. Like nix-shell only more so!",
@@ -59,5 +71,17 @@
         "url": "https://github.com/kyleconroy/sqlc/archive/140db73.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "v1.17.2"
+    },
+    "templ": {
+        "branch": "main",
+        "description": "A language for writing HTML user interfaces in Go.",
+        "homepage": "",
+        "owner": "a-h",
+        "repo": "templ",
+        "rev": "e1ca5e24f90e45320d195e3f17ef3f6b06755519",
+        "sha256": "12bgqsgndqma2bka5w8dxahhrcnr8ddc1h34axj9ysfh6lbihd0l",
+        "type": "tarball",
+        "url": "https://github.com/a-h/templ/archive/e1ca5e24f90e45320d195e3f17ef3f6b06755519.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

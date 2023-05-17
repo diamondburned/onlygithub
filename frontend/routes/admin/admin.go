@@ -23,18 +23,6 @@ func New(tiers onlygithub.TierService) http.Handler {
 	return r
 }
 
-func adminOnly(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session := frontend.SessionFromRequest(r)
-		if session == nil || !session.Me.IsOwner {
-			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 type handler struct {
 	tiers onlygithub.TierService
 }

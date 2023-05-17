@@ -5,7 +5,6 @@ import (
 
 	"libdb.so/onlygithub"
 	"libdb.so/onlygithub/frontend"
-	"libdb.so/onlygithub/frontend/layouts"
 )
 
 func GET(w http.ResponseWriter, r *http.Request) {
@@ -22,17 +21,17 @@ func GET(w http.ResponseWriter, r *http.Request) {
 	switch site.HomepageVisibility {
 	case onlygithub.NotVisible:
 		if opts.Me == nil || opts.Me.ID != owner.ID {
-			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
+			kickToLogin(w, r)
 			return
 		}
 	case onlygithub.VisibleToSponsors:
 		if opts.Me == nil || opts.Me.Sponsorship == nil {
-			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
+			kickToLogin(w, r)
 			return
 		}
 	case onlygithub.VisibleToPrivate:
 		if opts.Me == nil {
-			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
+			kickToLogin(w, r)
 			return
 		}
 	case onlygithub.VisibleToPublic:
@@ -40,4 +39,8 @@ func GET(w http.ResponseWriter, r *http.Request) {
 	}
 
 	index(r, site, owner, opts).Render(r.Context(), w)
+}
+
+func kickToLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusFound)
 }

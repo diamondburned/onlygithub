@@ -2,10 +2,11 @@
 
 STYLES = $(shell find frontend/styles -type f)
 TEMPLS = $(shell find frontend -type f -name '*.templ')
+GOFILES = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./build/*")
 
 build: build/onlyserve
 
-build/onlyserve: frontend internal/gh db
+build/onlyserve: frontend internal/gh db $(GOFILES)
 	mkdir -p build
 	go build -o build/onlyserve ./cmd/onlyserve
 

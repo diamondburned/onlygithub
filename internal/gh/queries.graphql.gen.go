@@ -23,7 +23,7 @@ const (
 
 // __sponsorsInput is used internally by genqlient
 type __sponsorsInput struct {
-	EndCursor string `json:"endCursor"`
+	EndCursor string `json:"endCursor,omitempty"`
 	Limit     int32  `json:"limit"`
 }
 
@@ -35,7 +35,7 @@ func (v *__sponsorsInput) GetLimit() int32 { return v.Limit }
 
 // __tiersInput is used internally by genqlient
 type __tiersInput struct {
-	EndCursor string `json:"endCursor"`
+	EndCursor string `json:"endCursor,omitempty"`
 	Limit     int32  `json:"limit"`
 }
 

@@ -230,8 +230,10 @@ button.outline {
 
 #create {
   width: var(--page-width);
+  max-width: var(--max-page-width);
   margin: 0 auto;
   padding: 0 var(--page-padding);
+  box-sizing: border-box;
   height: 100%;
   overflow: hidden;
   display: flex;
@@ -255,13 +257,24 @@ button.outline {
 }
 #create form formset {
   display: flex;
-  gap: 0.5em;
+  gap: 1em;
+}
+@media (max-width: 500px) {
+  #create form formset {
+    gap: 0.5em;
+  }
 }
 #create form formset:nth-child(1) {
   justify-content: space-between;
 }
 #create form formset:nth-child(1) > * {
   flex: 1;
+}
+@media (max-width: 500px) {
+  #create form formset:nth-child(1) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 }
 #create form formset:nth-child(2) {
   justify-content: flex-end;
@@ -272,11 +285,16 @@ button.outline {
   background-color: var(--primary);
   color: var(--background);
 }
-#create form formset:not(.content-editor),
-#create form button[type=submit] {
+#create form button[type=submit],
+#create form formset:not(.content-editor) {
   font-weight: bold;
-  font-size: 1.15em;
   margin-bottom: 1em;
+}
+@media (max-width: 500px) {
+  #create form button[type=submit],
+  #create form formset:not(.content-editor) {
+    margin-bottom: 0.5em;
+  }
 }
 #create form .content-editor {
   flex: 1;
@@ -309,8 +327,13 @@ button.outline {
 #create form .label-input-set label {
   margin-right: 0.75em;
 }
-#create form .label-input-set input {
+#create form .label-input-set input,
+#create form .label-input-set select {
   flex: 1;
+}
+#create form .label-input-set input:not([type=file]),
+#create form .label-input-set select:not([type=file]) {
+  height: 100%;
 }
 #create form .toggle-checkbox input {
   display: none;
@@ -323,6 +346,7 @@ button.outline {
   align-items: center;
   border: 1px solid var(--overlay);
   border-radius: var(--radius);
+  transition: all 75ms ease-in-out;
 }
 #create form .toggle-checkbox input:checked + label {
   background-color: var(--overlay);
@@ -346,12 +370,16 @@ button.outline {
   border-right: 1px solid transparent;
   display: flex;
   align-items: center;
+  transition: all 75ms ease-in-out;
 }
 #create form .radio-group input:checked + label {
   background-color: var(--overlay);
 }
 #create form .radio-group input:not(:checked) + label:not(:last-child) {
   border-color: var(--overlay);
+}
+#create #images {
+  width: 0;
 }
 
 #settings {

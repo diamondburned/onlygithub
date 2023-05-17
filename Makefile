@@ -32,7 +32,7 @@ internal/gh/schema.docs.graphql.gz:
 internal/gh/queries.graphql.gen.go: internal/gh/queries.graphql internal/gh/genqlient.yaml internal/gh/schema.docs.graphql.gz
 	gzip -d internal/gh/schema.docs.graphql.gz
 	cd internal/gh/ && genqlient
-	gzip internal/gh/schema.docs.graphql
+	gzip -f internal/gh/schema.docs.graphql
 
 
 db: db/sqlitec

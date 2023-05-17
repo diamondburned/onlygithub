@@ -4,3 +4,4 @@
 /node_modules
 /config.toml
 /build
+/internal/gh/schema.docs.graphql

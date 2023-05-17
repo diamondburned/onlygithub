@@ -1,8 +1,8 @@
-#create {
-  width: var(--page-width);
-  margin: 0 auto;
-  padding: 0 var(--page-padding);
+@use "../base" as *;
+@use "../variables" as *;
 
+#create {
+  @include centered-page;
   height: 100%;
   overflow: hidden;
 
@@ -30,13 +30,21 @@
 
     formset {
       display: flex;
-      gap: 0.5em;
+      gap: 1em;
+
+      @media (max-width: $mobile-width) {
+        gap: 0.5em;
+      }
 
       &:nth-child(1) {
         justify-content: space-between;
-
         & > * {
           flex: 1;
+        }
+
+        @media (max-width: $mobile-width) {
+          display: grid;
+          grid-template-columns: 1fr;
         }
       }
 
@@ -52,11 +60,14 @@
       color: var(--background);
     }
 
-    formset:not(.content-editor),
-    button[type="submit"] {
+    button[type="submit"],
+    formset:not(.content-editor) {
       font-weight: bold;
-      font-size: 1.15em;
       margin-bottom: 1em;
+
+      @media (max-width: $mobile-width) {
+        margin-bottom: 0.5em;
+      }
     }
 
     .content-editor {
@@ -98,8 +109,12 @@
         margin-right: 0.75em;
       }
 
-      input {
+      input,
+      select {
         flex: 1;
+        &:not([type="file"]) {
+          height: 100%;
+        }
       }
     }
 
@@ -116,6 +131,7 @@
         align-items: center;
         border: 1px solid var(--overlay);
         border-radius: var(--radius);
+        transition: all 75ms ease-in-out;
       }
 
       input:checked + label {
@@ -143,6 +159,7 @@
         border-right: 1px solid transparent;
         display: flex;
         align-items: center;
+        transition: all 75ms ease-in-out;
       }
 
       input:checked + label {
@@ -153,5 +170,9 @@
         border-color: var(--overlay);
       }
     }
+  }
+
+  #images {
+    width: 0;
   }
 }

@@ -8,7 +8,10 @@ query me() {
   }
 }
 
-query sponsors($endCursor: String, $limit: Int = 100) {
+query sponsors(
+  # @genqlient(omitempty: true)
+  $endCursor: String,
+  $limit: Int = 100) {
   viewer {
     sponsorshipsAsMaintainer(first: $limit, after: $endCursor, includePrivate: true, activeOnly: true) {
       edges {
@@ -53,7 +56,10 @@ query sponsors($endCursor: String, $limit: Int = 100) {
   }
 }
 
-query tiers($endCursor: String, $limit: Int = 100) {
+query tiers(
+  # @genqlient(omitempty: true)
+  $endCursor: String,
+  $limit: Int = 100) {
   viewer {
     sponsorsListing {
       tiers(first: $limit, after: $endCursor) {

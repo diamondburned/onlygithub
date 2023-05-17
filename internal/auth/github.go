@@ -29,7 +29,7 @@ type GitHubConfig struct {
 
 // GitHubTokenService is an OAuthTokenService for GitHub.
 type GitHubTokenService interface {
-	OAuthTokenService
+	onlygithub.OAuthTokenService
 	onlygithub.UserService
 }
 
@@ -39,6 +39,7 @@ func NewGitHubAuthorizer(cfg GitHubConfig, tokens GitHubTokenService) *GitHubAut
 		ClientID:     cfg.ID,
 		ClientSecret: cfg.Secret,
 		RedirectURL:  cfg.RedirectURL,
+		Scopes:       onlygithub.GitHubScopes,
 		Endpoint:     githuboauth.Endpoint,
 	}
 	oa := NewOAuthAuthorizer(GitHubProvider, oacfg, githubOAuthTokenService{
@@ -53,7 +54,6 @@ type githubOAuthTokenService struct {
 	tokens GitHubTokenService
 }
 
-// SaveToken saves the OAuth token for the given user.
 func (s githubOAuthTokenService) SaveToken(ctx context.Context, token, provider string, oauthToken *oauth2.Token) error {
 	if err := s.tokens.SaveToken(ctx, token, provider, oauthToken); err != nil {
 		return err
@@ -72,7 +72,10 @@ func (s githubOAuthTokenService) SaveToken(ctx context.Context, token, provider 
 	return nil
 }
 
-// RetrieveToken retrieves the OAuth token for the given user.
 func (s githubOAuthTokenService) RetrieveToken(ctx context.Context, token, provider string) (*oauth2.Token, error) {
 	return s.tokens.RetrieveToken(ctx, token, provider)
+}
+
+func (s githubOAuthTokenService) DeleteToken(ctx context.Context, token, provider string) error {
+	return s.tokens.DeleteToken(ctx, token, provider)
 }

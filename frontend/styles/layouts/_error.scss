@@ -18,11 +18,13 @@
 
   p {
     font-size: 1.2rem;
+    white-space: pre-wrap;
 
     &::before {
       content: "Error: ";
       color: #ff0000;
       font-weight: bold;
+      display: block;
     }
   }
 }

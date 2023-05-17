@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"html/template"
+	"time"
 
 	_ "embed"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"libdb.so/onlygithub"
@@ -24,8 +26,9 @@ var sqliteSchema string
 
 // SQLite implements various database interfaces using SQLite.
 type SQLite struct {
-	db *sql.DB
-	q  *sqlitec.Queries
+	db  *sql.DB
+	dbx *sqlx.DB
+	q   *sqlitec.Queries
 }
 
 var _ Database = (*SQLite)(nil)
@@ -42,8 +45,9 @@ func NewSQLite(uri string) (*SQLite, error) {
 	}
 
 	return &SQLite{
-		db: db,
-		q:  sqlitec.New(db),
+		db:  db,
+		dbx: sqlx.NewDb(db, "sqlite"),
+		q:   sqlitec.New(db),
 	}, nil
 }
 
@@ -80,9 +84,52 @@ func (s *SQLite) RetrieveToken(ctx context.Context, token, provider string) (*oa
 	}, nil
 }
 
+func (s *SQLite) DeleteToken(ctx context.Context, token, provider string) error {
+	err := s.q.DeleteToken(ctx, sqlitec.DeleteTokenParams{
+		Token:    token,
+		Provider: provider,
+	})
+	return sqliteErr(err)
+}
+
 func (s *SQLite) User(ctx context.Context, id onlygithub.GitHubID) (*onlygithub.User, error) {
-	u, err := s.q.User(ctx, string(id))
-	if err != nil {
+	const q = `
+		SELECT
+			users.id, users.username, users.email, users.real_name, users.pronouns, users.avatar_url, users.joined_at, users.is_owner,
+			user_tiers.price AS tier_price,
+			user_tiers.is_one_time AS tier_is_one_time,
+			user_tiers.is_custom_amount AS tier_is_custom_amount,
+			user_tiers.started_at AS tier_started_at,
+			user_tiers.renewed_at AS tier_renewed_at,
+			tiers.id AS tier_id,
+			tiers.name AS tier_name,
+			tiers.description AS tier_description
+		FROM users AS users -- https://github.com/kyleconroy/sqlc/issues/2271
+		LEFT JOIN user_tiers ON users.id = user_tiers.user_id
+		LEFT JOIN tiers ON user_tiers.tier_id = tiers.id
+		WHERE users.id = ?
+	`
+
+	var u struct {
+		ID                 string         `db:"id"`
+		Username           string         `db:"username"`
+		Email              string         `db:"email"`
+		RealName           string         `db:"real_name"`
+		Pronouns           string         `db:"pronouns"`
+		AvatarUrl          string         `db:"avatar_url"`
+		JoinedAt           time.Time      `db:"joined_at"`
+		IsOwner            bool           `db:"is_owner"`
+		TierPrice          sql.NullInt64  `db:"tier_price"`
+		TierIsOneTime      sql.NullBool   `db:"tier_is_one_time"`
+		TierIsCustomAmount sql.NullBool   `db:"tier_is_custom_amount"`
+		TierStartedAt      sql.NullTime   `db:"tier_started_at"`
+		TierRenewedAt      sql.NullTime   `db:"tier_renewed_at"`
+		TierID             sql.NullString `db:"tier_id"`
+		TierName           sql.NullString `db:"tier_name"`
+		TierDescription    sql.NullString `db:"tier_description"`
+	}
+
+	if err := sqlx.GetContext(ctx, s.dbx, &u, q, string(id)); err != nil {
 		return nil, sqliteErr(err)
 	}
 
@@ -94,23 +141,24 @@ func (s *SQLite) User(ctx context.Context, id onlygithub.GitHubID) (*onlygithub.
 		Pronouns:  u.Pronouns,
 		AvatarURL: u.AvatarUrl,
 		JoinedAt:  u.JoinedAt,
+		IsOwner:   u.IsOwner,
 	}
 
-	if u.TierPrice != 0 {
+	if u.TierPrice.Valid {
 		user.Sponsorship = &onlygithub.Sponsorship{
-			Price:          onlygithub.Cents(u.TierPrice),
-			StartedAt:      u.TierStartedAt,
-			RenewedAt:      u.TierRenewedAt,
-			IsOneTime:      u.TierIsOneTime,
-			IsCustomAmount: u.TierIsCustomAmount,
+			Price:          onlygithub.Cents(u.TierPrice.Int64),
+			StartedAt:      u.TierStartedAt.Time,
+			RenewedAt:      u.TierRenewedAt.Time,
+			IsOneTime:      u.TierIsOneTime.Bool,
+			IsCustomAmount: u.TierIsCustomAmount.Bool,
 		}
 
-		if u.TierID != "" {
+		if u.TierID.Valid {
 			user.Sponsorship.Tier = &onlygithub.Tier{
-				ID:          onlygithub.GitHubID(u.TierID),
-				Name:        u.TierName,
-				Price:       onlygithub.Cents(u.TierPrice),
-				Description: template.HTML(u.TierDescription),
+				ID:          onlygithub.GitHubID(u.TierID.String),
+				Name:        u.TierName.String,
+				Price:       onlygithub.Cents(u.TierPrice.Int64),
+				Description: template.HTML(u.TierDescription.String),
 			}
 		}
 	}
@@ -144,6 +192,7 @@ func (s *SQLite) Owner(ctx context.Context) (*onlygithub.User, error) {
 		Pronouns:  u.Pronouns,
 		AvatarURL: u.AvatarUrl,
 		JoinedAt:  u.JoinedAt,
+		IsOwner:   u.IsOwner,
 	}, nil
 }
 
@@ -203,6 +252,54 @@ func (s *SQLite) SetUserConfig(ctx context.Context, id onlygithub.GitHubID, cfg 
 		ID:         string(id),
 	})
 	return sqliteErr(err)
+}
+
+func (s *SQLite) Tiers(ctx context.Context) ([]onlygithub.Tier, error) {
+	v, err := s.q.Tiers(ctx)
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	tiers := make([]onlygithub.Tier, len(v))
+	for i, t := range v {
+		tiers[i] = onlygithub.Tier{
+			ID:          onlygithub.GitHubID(t.ID),
+			Name:        t.Name,
+			Price:       onlygithub.Cents(t.Price),
+			Description: template.HTML(t.Description),
+		}
+	}
+
+	return tiers, nil
+}
+
+func (s *SQLite) UpdateTiers(ctx context.Context, tiers []onlygithub.Tier) error {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return sqliteErr(err)
+	}
+	defer tx.Rollback()
+
+	q := sqlitec.New(tx)
+
+	if err := q.DeleteAllTiers(ctx); err != nil {
+		return errors.Wrap(sqliteErr(err), "delete tiers")
+	}
+
+	for _, t := range tiers {
+		if err := q.CreateTier(ctx, sqlitec.CreateTierParams{
+			ID:          string(t.ID),
+			Name:        t.Name,
+			Price:       int64(t.Price),
+			Description: string(t.Description),
+		}); err != nil {
+			return errors.Wrap(sqliteErr(err), "create tier")
+		}
+	}
+
+	return sqliteErr(tx.Commit())
 }
 
 func sqliteErr(err error) error {

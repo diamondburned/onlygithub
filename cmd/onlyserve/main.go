@@ -88,6 +88,7 @@ func serve() {
 		GitHubOAuth: ghOAuth,
 		Config:      db,
 		Users:       db,
+		Tiers:       db,
 	})
 
 	log.Println("listening on", httpAddr)

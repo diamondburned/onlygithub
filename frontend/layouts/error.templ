@@ -3,7 +3,9 @@ package layouts
 import (
 	"net/http"
 	"strconv"
+	"encoding/json"
 
+	"libdb.so/onlygithub"
 	"libdb.so/onlygithub/frontend/components"
 	"libdb.so/onlygithub/internal/api"
 )
@@ -14,9 +16,17 @@ func RenderError(w http.ResponseWriter, r *http.Request, err error) {
 	Error(code, message).Render(r.Context(), w)
 }
 
+func marshalError(message string) string {
+	v, _ := json.Marshal(onlygithub.ErrorResponse{
+		Message: message,
+	})
+	return string(v)
+}
+
 templ Error(code int, message string) {
 	<!DOCTYPE html>
 	@components.Head(components.HeadOpts{Title: "Error – onlygithub"})
+	<meta name="json" content={ marshalError(message) }/>
 
 	<body id="error">
 		<img src={ "https://http.cat/" + strconv.Itoa(code) } alt={ "http.cat for " + strconv.Itoa(code) }/>

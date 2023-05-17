@@ -1,9 +1,5 @@
 package gh
 
-//go:generate mkdir -p /tmp/onlygithub
-//go:generate wget -P /tmp/onlygithub -q -N https://docs.github.com/public/schema.docs.graphql
-//go:generate genqlient
-
 import (
 	"context"
 	"encoding/json"
@@ -196,6 +192,9 @@ func (p *paginator[RespT, ResourceT]) Next() ([]ResourceT, error) {
 }
 
 func (p *paginator[RespT, ResourceT]) All() ([]ResourceT, error) {
+	p.HasNext = true
+	p.Cursor = ""
+
 	var all []ResourceT
 	for p.HasNext {
 		vs, err := p.Next()

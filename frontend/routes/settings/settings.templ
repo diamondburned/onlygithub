@@ -1,0 +1,56 @@
+package settings
+
+import "libdb.so/onlygithub/frontend/components"
+import "libdb.so/onlygithub/frontend/layouts"
+import "libdb.so/onlygithub"
+import "net/http"
+
+type settingsData struct {
+	Me				 *onlygithub.User
+	MeConfig	 *onlygithub.UserConfig
+	SiteConfig *onlygithub.SiteConfig
+}
+
+templ checkbox(id, title, desc string, checked bool) {
+	<label for={ id }>
+		<p>
+			{ title } <br /> <small>{ desc }</small>
+		</p>
+		<div class="big-checkbox">
+			<input type="checkbox" id={ id } name={ id } checked?={ checked } />
+			<div class="checkbox"></div>
+		</div>
+	</label>
+}
+
+templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, data settingsData) {
+	<!DOCTYPE html>
+	@layouts.Main("settings", "Settings", site, owner) {
+		<h1>Settings</h1>
+
+		<section>
+			<h2>Preferences</h2>
+			<form id="user-config-form" method="post">
+				<formset class="toggles">
+					@checkbox("show-comments", "Show comments", "Show or hide comments on the homepage", data.MeConfig.ShowComments)
+					@checkbox("anonymous", "Anonymous", "Hide your username from other users", data.MeConfig.Anonymous)
+				</formset>
+	
+				<button type="submit">
+					@components.Icon("save", components.InlineIcon)
+					Save
+				</button>
+			</form>
+		</section>
+
+		<section>
+			<h2>Account</h2>
+			<form id="logout" method="post" action="/logout">
+				<button type="submit" class="del">
+					@components.Icon("logout", components.InlineIcon)
+					Log out
+				</button>
+			</form>
+		</section>
+	}
+}

@@ -1,4 +1,4 @@
-schema: /tmp/onlygithub/schema.docs.graphql
+schema: schema.docs.graphql
 generated: queries.graphql.gen.go
 operations: [queries.graphql]
 # Base64String

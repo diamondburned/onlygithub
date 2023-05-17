@@ -3,7 +3,20 @@ package onlygithub
 import (
 	"context"
 	"io"
+
+	"github.com/rs/xid"
+	"golang.org/x/oauth2"
 )
+
+// OAuthTokenService is an interface for saving and retrieving OAuth tokens.
+type OAuthTokenService interface {
+	// SaveToken saves the OAuth token for the given user.
+	SaveToken(ctx context.Context, token, provider string, oauthToken *oauth2.Token) error
+	// RetrieveToken retrieves the OAuth token for the given user.
+	RetrieveToken(ctx context.Context, token, provider string) (*oauth2.Token, error)
+	// DeleteToken deletes the OAuth token for the given user.
+	DeleteToken(ctx context.Context, token, provider string) error
+}
 
 // PrivilegedUserService should never be used by the frontend. It is only
 // intended to be used by the backend.
@@ -36,12 +49,24 @@ type PostService interface {
 	// posts should be returned, but if Sponsor is specified, both public and
 	// sponsor-only posts should be returned.
 	Posts(ctx context.Context, visibility Visibility, before ID) ([]Post, error)
-	// UploadImage uploads an image. The image should be uploaded with the given
-	// filename. The filename should be validated.
-	UploadImage(ctx context.Context, r io.Reader, req UploadImageRequest) (*ImageAsset, error)
 	// CreatePost creates a post. The post should be created with the given
 	// visibility. The visibility should be validated.
 	CreatePost(ctx context.Context, req CreatePostRequest) (*Post, error)
+}
+
+// ImageService is a service that manages images.
+type ImageService interface {
+	// Image returns the image with the given ID. If no image exists with the
+	// given ID, an error should be returned.
+	Image(ctx context.Context, id ID) (*ImageAsset, error)
+	// ImageData returns the image data for the given image ID.
+	ImageData(ctx context.Context, id xid.ID) (io.ReadCloser, error)
+	// UploadImage uploads an image. The image should be uploaded with the given
+	// filename. The filename should be validated.
+	UploadImage(ctx context.Context, req UploadImageRequest, r io.Reader) (*ImageAsset, error)
+	// DeleteImage deletes the image with the given ID. If no image exists with
+	// the given ID, an error should be returned.
+	DeleteImage(ctx context.Context, id ID) error
 }
 
 // UploadImageRequest is a request to upload an image.
@@ -85,4 +110,12 @@ type ConfigService interface {
 	UserConfig(ctx context.Context, userID GitHubID) (*UserConfig, error)
 	// SetUserConfig updates the configuration for the given user.
 	SetUserConfig(ctx context.Context, userID GitHubID, cfg *UserConfig) error
+}
+
+// TierService is a service that manages tiers.
+type TierService interface {
+	// Tiers returns the known tiers in the system.
+	Tiers(ctx context.Context) ([]Tier, error)
+	// UpdateTiers updates the tiers in the system.
+	UpdateTiers(ctx context.Context, tiers []Tier) error
 }

@@ -5,21 +5,10 @@ INSERT INTO oauth_tokens (token, provider, access_token, token_type, refresh_tok
 -- name: RestoreToken :one
 SELECT * FROM oauth_tokens WHERE token = ? AND provider = ?;
 
--- name: User :one
-SELECT
-	users.id, users.username, users.email, users.real_name, users.pronouns, users.avatar_url, users.joined_at,
-	user_tiers.price AS tier_price,
-	user_tiers.is_one_time AS tier_is_one_time,
-	user_tiers.is_custom_amount AS tier_is_custom_amount,
-	user_tiers.started_at AS tier_started_at,
-	user_tiers.renewed_at AS tier_renewed_at,
-	tiers.id AS tier_id,
-	tiers.name AS tier_name,
-	tiers.description AS tier_description
-FROM users AS users -- https://github.com/kyleconroy/sqlc/issues/2271
-LEFT JOIN user_tiers ON users.id = user_tiers.user_id
-LEFT JOIN tiers ON user_tiers.tier_id = tiers.id
-WHERE users.id = ?;
+-- name: DeleteToken :exec
+DELETE FROM oauth_tokens WHERE token = ? AND provider = ?;
+
+-- omitted: User :one
 
 -- name: Owner :one
 SELECT * FROM users WHERE is_owner = TRUE;
@@ -42,8 +31,8 @@ REPLACE INTO tiers (id, name, price, description)
 	VALUES (?, ?, ?, ?);
 
 -- name: SetUserTier :exec
-REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount)
-	VALUES (?, ?, ?, ?, ?);
+REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount, started_at, renewed_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: DeleteUserTier :exec
 DELETE FROM user_tiers WHERE user_id = ?;
@@ -65,3 +54,13 @@ SELECT site_config FROM users WHERE is_owner = TRUE;
 
 -- name: SetSiteConfig :exec
 UPDATE users SET site_config = ? WHERE is_owner = TRUE;
+
+-- name: Tiers :many
+SELECT * FROM tiers;
+
+-- name: DeleteAllTiers :exec
+DELETE FROM tiers;
+
+-- name: CreateTier :exec
+INSERT INTO tiers (id, name, price, description)
+	VALUES (?, ?, ?, ?);

@@ -8,21 +8,35 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"libdb.so/onlygithub/frontend"
 	"libdb.so/onlygithub/frontend/layouts"
+	"libdb.so/onlygithub/frontend/routes/admin"
+	"libdb.so/onlygithub/frontend/routes/create"
+	"libdb.so/onlygithub/frontend/routes/images"
 	"libdb.so/onlygithub/frontend/routes/index"
+	"libdb.so/onlygithub/frontend/routes/settings"
 )
 
 // New returns a new page router.
 func New(d frontend.Deps) http.Handler {
+	oauthMiddleware := d.GitHubOAuth.Middleware("/login")
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Use(d.GitHubOAuth.Use())
+	r.Use(middleware.CleanPath)
+	r.Use(middleware.Recoverer)
+	r.Use(oauthMiddleware.Use())
 
 	r.Mount("/static", frontend.StaticHandler())
 	r.Route("/login", func(r chi.Router) {
 		r.Mount("/github", d.GitHubOAuth)
 		r.Handle("/", redirectHandler("/login/github"))
 	})
-	r.HandleFunc("/logout", unimplemented)
+	r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+		if err := d.GitHubOAuth.Logout(w, r); err != nil {
+			layouts.RenderError(w, r, err)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(d.RenderingMiddleware)
@@ -30,7 +44,15 @@ func New(d frontend.Deps) http.Handler {
 			layouts.RenderError(w, r, hrt.NewHTTPError(http.StatusNotFound, "page not found"))
 		})
 
-		r.Get("/", index.Handle)
+		r.Mount("/create", create.New(create.Services{
+			Images: d.Images,
+			Posts:  d.Posts,
+			Tiers:  d.Tiers,
+		}))
+		r.Mount("/settings", settings.New(d.Config))
+		r.Mount("/images", images.New(d.Images, oauthMiddleware))
+		r.Mount("/admin", admin.New(d.Tiers))
+		r.Get("/", index.GET)
 	})
 
 	return r

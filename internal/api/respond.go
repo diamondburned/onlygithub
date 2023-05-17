@@ -30,7 +30,7 @@ func Respond(w http.ResponseWriter, data any) {
 	json.NewEncoder(w).Encode(data)
 }
 
-var errServer = hrt.NewHTTPError(500, "Internal Server Error")
+var errInternal = hrt.NewHTTPError(500, "Internal Server Error")
 
 // ExtractError extracts an error code and message from an error.
 func ExtractError(r *http.Request, err error) (int, string) {
@@ -55,15 +55,22 @@ func WrapError(r *http.Request, err error) error {
 		}
 
 		log.Warn("internal error:", args...)
-		return err
+		return errInternal
 	}
 
-	switch {
-	case errors.Is(err, onlygithub.ErrNotFound):
-		return hrt.WrapHTTPError(404, err)
-	case errors.Is(err, onlygithub.ErrUnauthorized):
-		return hrt.WrapHTTPError(401, err)
+	if hrt.ErrorHTTPStatus(err, 0) == 0 {
+		switch {
+		case errors.Is(err, onlygithub.ErrNotFound):
+			err = hrt.WrapHTTPError(404, err)
+		case errors.Is(err, onlygithub.ErrUnauthorized):
+			err = hrt.WrapHTTPError(401, err)
+		}
 	}
 
-	return hrt.WrapHTTPError(500, err)
+	if hrt.ErrorHTTPStatus(err, 0) >= 500 {
+		log.Warn("internal error:", "error", err)
+		err = errInternal
+	}
+
+	return err
 }

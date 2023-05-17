@@ -17,10 +17,7 @@ type MainOpts struct {
 	Me *onlygithub.User // current user, optional
 }
 
-// omitted:
-// @components.Sidebar(components.SidebarOpts{Me: opts.Me})
-
-func Main(title string, site *onlygithub.SiteConfig, owner *onlygithub.User, opts MainOpts) templ.Component {
+func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -33,11 +30,6 @@ func Main(title string, site *onlygithub.SiteConfig, owner *onlygithub.User, opt
 			var_1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		// DocType
-		_, err = templBuffer.WriteString(`<!doctype html>`)
-		if err != nil {
-			return err
-		}
 		// TemplElement
 		err = components.Head(components.HeadOpts{Title: title, Owner: owner}).Render(ctx, templBuffer)
 		if err != nil {
@@ -50,6 +42,22 @@ func Main(title string, site *onlygithub.SiteConfig, owner *onlygithub.User, opt
 		}
 		// Element Attributes
 		_, err = templBuffer.WriteString(" class=\"main\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" id=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(id))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
 		if err != nil {
 			return err
 		}

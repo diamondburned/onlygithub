@@ -7,11 +7,15 @@ $brand-gradient: linear-gradient(60deg, #55cdfc, #f7a8b8);
 $color-variation: 10%;
 $transparency: 0.2;
 $radius: 0.4em;
+$max-page-width: 800px;
 
 :root {
   --color-variation: 10%;
   --transparency: 0.2;
   --radius: 0.4em;
+  --page-padding: clamp(1rem, 5vw, 2rem);
+  --page-width: min(100%, var(--max-page-width));
+  --max-page-width: #{$max-page-width};
 }
 
 $light-foreground: $black;
@@ -28,11 +32,11 @@ $light-overlay: rgba($light-foreground, $transparency);
 
 $dark-foreground: $white;
 $dark-background: $black;
-$dark-primary: $blue;
+$dark-primary: darken($blue, 5%);
 $dark-primary-hover: rgba($blue, 0.4);
 $dark-success: $green;
 $dark-warning: $orange;
-$dark-error: $red;
+$dark-error: darken($red, 20%);
 $dark-dull: $gray;
 $dark-border: 1px solid $dark-dull;
 $dark-shadow: 0 0 0.2em rgba($dark-dull, $transparency);

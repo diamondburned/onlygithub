@@ -13,7 +13,9 @@ import "bytes"
 import (
 	"net/http"
 	"strconv"
+	"encoding/json"
 
+	"libdb.so/onlygithub"
 	"libdb.so/onlygithub/frontend/components"
 	"libdb.so/onlygithub/internal/api"
 )
@@ -22,6 +24,13 @@ func RenderError(w http.ResponseWriter, r *http.Request, err error) {
 	code, message := api.ExtractError(r, err)
 	w.WriteHeader(code)
 	Error(code, message).Render(r.Context(), w)
+}
+
+func marshalError(message string) string {
+	v, _ := json.Marshal(onlygithub.ErrorResponse{
+		Message: message,
+	})
+	return string(v)
 }
 
 func Error(code int, message string) templ.Component {
@@ -44,6 +53,36 @@ func Error(code int, message string) templ.Component {
 		}
 		// TemplElement
 		err = components.Head(components.HeadOpts{Title: "Error – onlygithub"}).Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		// Element (void)
+		_, err = templBuffer.WriteString("<meta")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" name=\"json\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" content=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(marshalError(message)))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
 		if err != nil {
 			return err
 		}

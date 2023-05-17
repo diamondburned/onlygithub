@@ -8,7 +8,7 @@ import (
 	"libdb.so/onlygithub/frontend/layouts"
 )
 
-func Handle(w http.ResponseWriter, r *http.Request) {
+func GET(w http.ResponseWriter, r *http.Request) {
 	site := frontend.SiteFromRequest(r)
 	owner := frontend.OwnerFromRequest(r)
 

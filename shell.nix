@@ -86,6 +86,7 @@ pkgs.mkShell {
 		goapi-gen
 		templ
 		sqlc
+		deno
 		dart-sass
 		genqlient
 		pgformatter

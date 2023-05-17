@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+	"libdb.so/onlygithub"
 	"libdb.so/onlygithub/internal/api"
 )
 
@@ -39,14 +40,6 @@ type OAuthConfig struct {
 	RootEndpoint string // Root endpoint for mounting router
 }
 
-// OAuthTokenService is an interface for saving and retrieving OAuth tokens.
-type OAuthTokenService interface {
-	// SaveToken saves the OAuth token for the given user.
-	SaveToken(ctx context.Context, token, provider string, oauthToken *oauth2.Token) error
-	// RetrieveToken retrieves the OAuth token for the given user.
-	RetrieveToken(ctx context.Context, token, provider string) (*oauth2.Token, error)
-}
-
 // OAuthAuthorizer is an interface for authorizing OAuth requests.
 // It supplies middlewares and handlers with the ability to authorize
 // requests.
@@ -55,11 +48,11 @@ type OAuthAuthorizer struct {
 	Config   *oauth2.Config
 	Provider string
 
-	tokens OAuthTokenService
+	tokens onlygithub.OAuthTokenService
 }
 
 // NewOAuthAuthorizer returns a new OAuthAuthorizer.
-func NewOAuthAuthorizer(provider string, config *oauth2.Config, tokenService OAuthTokenService) *OAuthAuthorizer {
+func NewOAuthAuthorizer(provider string, config *oauth2.Config, tokenService onlygithub.OAuthTokenService) *OAuthAuthorizer {
 	a := &OAuthAuthorizer{
 		Config:   config,
 		tokens:   tokenService,
@@ -68,6 +61,7 @@ func NewOAuthAuthorizer(provider string, config *oauth2.Config, tokenService OAu
 
 	a.Router = chi.NewRouter()
 	a.Router.Get("/callback", a.handleCallback)
+	a.Router.Get("/logout", a.handleLogout)
 	a.Router.Get("/", a.handleLogin)
 
 	return a
@@ -99,6 +93,13 @@ func (a *OAuthAuthorizer) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	redirect := config.AuthCodeURL(ticket)
 	http.Redirect(w, r, redirect, http.StatusFound)
+}
+
+func (a *OAuthAuthorizer) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if err := a.Logout(w, r); err != nil {
+		api.RespondError(w, r, hrt.WrapHTTPError(http.StatusInternalServerError, err))
+		return
+	}
 }
 
 // handleCallback is the route that the OAuth provider redirects the user
@@ -148,6 +149,29 @@ func (a *OAuthAuthorizer) handleCallback(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// handleLogout is the route that logs the user out.
+func (a *OAuthAuthorizer) Logout(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie(a.Provider + "-token")
+	if err != nil {
+		return hrt.WrapHTTPError(http.StatusBadRequest, err)
+	}
+
+	if err = a.tokens.DeleteToken(r.Context(), cookie.Value, a.Provider); err != nil {
+		return hrt.WrapHTTPError(
+			http.StatusInternalServerError,
+			errors.Wrap(err, "failed to delete token"))
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     a.Provider + "-token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		SameSite: http.SameSiteStrictMode,
+	})
+	return nil
+}
+
 // FromRequest returns the OAuth token from the request.
 func (a *OAuthAuthorizer) FromRequest(r *http.Request) (*oauth2.Token, error) {
 	cookie, err := r.Cookie(a.Provider + "-token")
@@ -157,9 +181,23 @@ func (a *OAuthAuthorizer) FromRequest(r *http.Request) (*oauth2.Token, error) {
 	return a.tokens.RetrieveToken(r.Context(), cookie.Value, a.Provider)
 }
 
+// OAuthMiddleware contains middlewares for authorizing requests.
+type OAuthMiddleware struct {
+	*OAuthAuthorizer
+	Prefix string
+}
+
+// Middleware creates an OAuthMiddleware with the given prefix.
+func (a *OAuthAuthorizer) Middleware(prefix string) *OAuthMiddleware {
+	return &OAuthMiddleware{
+		OAuthAuthorizer: a,
+		Prefix:          prefix,
+	}
+}
+
 // Use returns a middleware that authorizes requests. It is required for
 // TokenFromRequest to work.
-func (a *OAuthAuthorizer) Use() func(next http.Handler) http.Handler {
+func (a *OAuthMiddleware) Use() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := a.FromRequest(r)
@@ -174,12 +212,12 @@ func (a *OAuthAuthorizer) Use() func(next http.Handler) http.Handler {
 
 // RequireOrRedirect is similar to Use, except it redirects the user to the
 // given URL if they are not authorized. Use this to establish a login wall.
-func (a *OAuthAuthorizer) RequireOrRedirect(redirectOtherwise string) func(http.Handler) http.Handler {
+func (a *OAuthMiddleware) RequireOrRedirect() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := TokenFromRequest(r)
 			if token == nil {
-				http.Redirect(w, r, redirectOtherwise, http.StatusFound)
+				http.Redirect(w, r, a.Prefix, http.StatusFound)
 				return
 			}
 			next.ServeHTTP(w, r)

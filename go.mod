@@ -6,9 +6,9 @@ require (
 	github.com/Khan/genqlient v0.5.0
 	github.com/a-h/templ v0.2.282
 	github.com/diamondburned/hrt v0.0.0-20230507073749-aec7f274358d
-	github.com/diamondburned/tmplutil v0.0.0-20230502073207-a7344c587cc4
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/hashicorp/go-hclog v1.5.0
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/pkg/errors v0.9.1
 	github.com/rs/xid v1.5.0
 	github.com/shurcooL/githubv4 v0.0.0-20230424031643-6cea62ecd5a9

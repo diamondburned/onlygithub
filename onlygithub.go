@@ -15,6 +15,12 @@ import (
 	"github.com/rs/xid"
 )
 
+// GitHubScopes is a list of scopes required by our application.
+var GitHubScopes = []string{
+	"read:user",
+	"read:org",
+}
+
 // GitHubID is a GitHub ID for a resource originating from GitHub.
 type GitHubID string
 
@@ -133,6 +139,8 @@ type User struct {
 	// Sponsorship is the sponsorship of the user. If null, the user is not
 	// currently sponsoring.
 	Sponsorship *Sponsorship `json:"sponsorship,omitempty"`
+	// IsOwner is true if the user is the owner of the service.
+	IsOwner bool `json:"isOwner,omitempty"`
 }
 
 // Sponsorship describes a sponsorship of a user.
@@ -175,6 +183,16 @@ const (
 	VisibleToPublic Visibility = "public"
 )
 
+// Validate validates the visibility.
+func (v Visibility) Validate() error {
+	switch v {
+	case NotVisible, VisibleToSponsors, VisibleToPrivate, VisibleToPublic:
+		return nil
+	default:
+		return fmt.Errorf("unknown visibility %q", v)
+	}
+}
+
 // Asset is the metadata of an asset. It does not contain the actual asset data.
 //
 // An asset can be a piece of content, a comment, or a reaction. Each asset
@@ -199,6 +217,26 @@ type Asset struct {
 	MinimumCost Cents `json:"minimumCost"`
 	// LastUpdated is the time the content was last updated.
 	LastUpdated *time.Time `json:"updatedAt,omitempty"`
+}
+
+// IsVisibleTo returns true if the asset is visible to the given user. If the
+// visibility is VisibleToSponsors, then minCost is used to determine whether
+// the user has paid enough to see the content.
+func (a Asset) IsVisibleTo(user *User) bool {
+	switch a.Visibility {
+	case NotVisible:
+		return user != nil && user.IsOwner
+	case VisibleToSponsors:
+		return user != nil &&
+			user.Sponsorship != nil &&
+			user.Sponsorship.Price >= a.MinimumCost
+	case VisibleToPrivate:
+		return user != nil
+	case VisibleToPublic:
+		return true
+	default:
+		return user != nil && user.IsOwner
+	}
 }
 
 // Post is a single post. It is also an asset.
@@ -270,6 +308,9 @@ type SiteConfig struct {
 	// AllowComments controls whether or not users can comment on the
 	// homepage.
 	AllowComments bool `json:"allowComments,omitempty"`
+	// AllowReactions controls whether or not users can react to posts at all.
+	// It takes precedence over the post's AllowReactions field.
+	AllowReactions bool `json:"allowReactions,omitempty"`
 	// HomepageVisibility controls who can see the homepage.
 	// By default, only the owner can see the homepage. They're expected to
 	// change this in the admin panel.
@@ -289,8 +330,9 @@ func DefaultSiteConfig() *SiteConfig {
 		Socials: Socials{
 			ShowGitHub: true,
 		},
-		AllowDMs:      true,
-		AllowComments: true,
+		AllowDMs:       true,
+		AllowComments:  true,
+		AllowReactions: true,
 	}
 }
 

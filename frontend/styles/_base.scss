@@ -1,5 +1,13 @@
 @use "variables" as *;
 
+@mixin centered-page {
+  width: var(--page-width);
+  max-width: var(--max-page-width);
+  margin: 0 auto;
+  padding: 0 var(--page-padding);
+  box-sizing: border-box;
+}
+
 html,
 body {
   height: 100%;
@@ -9,6 +17,7 @@ body {
 
 body {
   margin: 0 auto;
+  font-size: clamp(0.95rem, 0.6167rem + 1.0667vw, 1.15rem);
   font-family: "Lato", "Helvetica", "Noto Sans", sans-serif;
 }
 
@@ -16,6 +25,12 @@ h1,
 h2,
 h3 {
   font-family: "Nunito", "Source Sans Pro", "Helvetica", "Segoe UI", sans-serif;
+}
+
+hr {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--dull);
 }
 
 .material-icons {
@@ -40,5 +55,40 @@ a[role="button"] {
   &:hover,
   &:hover * {
     cursor: pointer;
+  }
+}
+
+input,
+select,
+button {
+  --input-height: 2.5em;
+
+  border: none;
+  outline: none;
+  padding: 0;
+  color: inherit;
+  background: none;
+}
+
+button {
+  height: var(--input-height);
+  border-radius: var(--radius);
+  padding: 0 1em;
+  color: white;
+  background-color: var(--primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+
+  &.del {
+    --primary: var(--error);
+  }
+
+  &.outline {
+    background-color: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
   }
 }

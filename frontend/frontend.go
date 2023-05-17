@@ -14,9 +14,6 @@ import (
 	"libdb.so/onlygithub/internal/gh"
 )
 
-//go:generate sass styles.scss static/styles.css
-//go:generate templ generate
-
 //go:embed static
 var staticFS embed.FS
 
@@ -24,6 +21,14 @@ var staticFS embed.FS
 // /static will be served from root.
 func StaticHandler() http.Handler {
 	return http.FileServer(http.FS(staticFS))
+}
+
+// ServeJS creates a new handler that serves the given JS blob.
+func ServeJS(blob string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Write([]byte(blob))
+	}
 }
 
 type ctxKey int
@@ -44,7 +49,10 @@ type Session struct {
 
 // Deps is the dependencies for the frontend.
 type Deps struct {
+	Tiers       onlygithub.TierService
 	Users       onlygithub.UserService
+	Posts       onlygithub.PostService
+	Images      onlygithub.ImageService
 	Config      onlygithub.ConfigService
 	GitHubOAuth *auth.GitHubAuthorizer
 }
@@ -84,10 +92,25 @@ func (d *Deps) RenderingMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
+			user, err := d.Users.User(r.Context(), me.ID)
+			if err != nil {
+				if errors.Is(err, onlygithub.ErrNotFound) {
+					// Create the user.
+					if err = d.Users.UpdateUser(r.Context(), me); err != nil {
+						layouts.RenderError(w, r, errors.Wrap(err, "failed to create user"))
+						return
+					}
+					user = me
+				} else {
+					layouts.RenderError(w, r, errors.Wrap(err, "failed to get user"))
+					return
+				}
+			}
+
 			ctx = context.WithValue(ctx, sessionKey, &Session{
 				Token:  oauth,
 				GitHub: client,
-				Me:     me,
+				Me:     user,
 			})
 		}
 
@@ -106,4 +129,29 @@ func OwnerFromRequest(r *http.Request) *onlygithub.User {
 func SessionFromRequest(r *http.Request) *Session {
 	v, _ := r.Context().Value(sessionKey).(*Session)
 	return v
+}
+
+// OwnerOnly is a middleware that checks if the user is the owner.
+func OwnerOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session := SessionFromRequest(r)
+		if session == nil || !session.Me.IsOwner {
+			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func LoggedInOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session := SessionFromRequest(r)
+		if session == nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

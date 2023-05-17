@@ -11,6 +11,51 @@ import (
 	"time"
 )
 
+const createTier = `-- name: CreateTier :exec
+INSERT INTO tiers (id, name, price, description)
+	VALUES (?, ?, ?, ?)
+`
+
+type CreateTierParams struct {
+	ID          string
+	Name        string
+	Price       int64
+	Description string
+}
+
+func (q *Queries) CreateTier(ctx context.Context, arg CreateTierParams) error {
+	_, err := q.db.ExecContext(ctx, createTier,
+		arg.ID,
+		arg.Name,
+		arg.Price,
+		arg.Description,
+	)
+	return err
+}
+
+const deleteAllTiers = `-- name: DeleteAllTiers :exec
+DELETE FROM tiers
+`
+
+func (q *Queries) DeleteAllTiers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllTiers)
+	return err
+}
+
+const deleteToken = `-- name: DeleteToken :exec
+DELETE FROM oauth_tokens WHERE token = ? AND provider = ?
+`
+
+type DeleteTokenParams struct {
+	Token    string
+	Provider string
+}
+
+func (q *Queries) DeleteToken(ctx context.Context, arg DeleteTokenParams) error {
+	_, err := q.db.ExecContext(ctx, deleteToken, arg.Token, arg.Provider)
+	return err
+}
+
 const deleteUserTier = `-- name: DeleteUserTier :exec
 DELETE FROM user_tiers WHERE user_id = ?
 `
@@ -48,9 +93,11 @@ func (q *Queries) MakeOwner(ctx context.Context, username string) error {
 }
 
 const owner = `-- name: Owner :one
+
 SELECT id, username, email, real_name, pronouns, avatar_url, joined_at, is_owner, user_config, site_config FROM users WHERE is_owner = TRUE
 `
 
+// omitted: User :one
 func (q *Queries) Owner(ctx context.Context) (User, error) {
 	row := q.db.QueryRowContext(ctx, owner)
 	var i User
@@ -183,8 +230,8 @@ func (q *Queries) SetUserConfig(ctx context.Context, arg SetUserConfigParams) er
 }
 
 const setUserTier = `-- name: SetUserTier :exec
-REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount)
-	VALUES (?, ?, ?, ?, ?)
+REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount, started_at, renewed_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 type SetUserTierParams struct {
@@ -193,6 +240,8 @@ type SetUserTierParams struct {
 	Price          int64
 	IsOneTime      bool
 	IsCustomAmount bool
+	StartedAt      time.Time
+	RenewedAt      time.Time
 }
 
 func (q *Queries) SetUserTier(ctx context.Context, arg SetUserTierParams) error {
@@ -202,6 +251,8 @@ func (q *Queries) SetUserTier(ctx context.Context, arg SetUserTierParams) error 
 		arg.Price,
 		arg.IsOneTime,
 		arg.IsCustomAmount,
+		arg.StartedAt,
+		arg.RenewedAt,
 	)
 	return err
 }
@@ -215,6 +266,38 @@ func (q *Queries) SiteConfig(ctx context.Context) ([]byte, error) {
 	var site_config []byte
 	err := row.Scan(&site_config)
 	return site_config, err
+}
+
+const tiers = `-- name: Tiers :many
+SELECT id, name, price, description FROM tiers
+`
+
+func (q *Queries) Tiers(ctx context.Context) ([]Tier, error) {
+	rows, err := q.db.QueryContext(ctx, tiers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Tier
+	for rows.Next() {
+		var i Tier
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Price,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateUser = `-- name: UpdateUser :exec
@@ -247,64 +330,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.AvatarUrl,
 	)
 	return err
-}
-
-const user = `-- name: User :one
-SELECT
-	users.id, users.username, users.email, users.real_name, users.pronouns, users.avatar_url, users.joined_at,
-	user_tiers.price AS tier_price,
-	user_tiers.is_one_time AS tier_is_one_time,
-	user_tiers.is_custom_amount AS tier_is_custom_amount,
-	user_tiers.started_at AS tier_started_at,
-	user_tiers.renewed_at AS tier_renewed_at,
-	tiers.id AS tier_id,
-	tiers.name AS tier_name,
-	tiers.description AS tier_description
-FROM users AS users -- https://github.com/kyleconroy/sqlc/issues/2271
-LEFT JOIN user_tiers ON users.id = user_tiers.user_id
-LEFT JOIN tiers ON user_tiers.tier_id = tiers.id
-WHERE users.id = ?
-`
-
-type UserRow struct {
-	ID                 string
-	Username           string
-	Email              string
-	RealName           string
-	Pronouns           string
-	AvatarUrl          string
-	JoinedAt           time.Time
-	TierPrice          int64
-	TierIsOneTime      bool
-	TierIsCustomAmount bool
-	TierStartedAt      time.Time
-	TierRenewedAt      time.Time
-	TierID             string
-	TierName           string
-	TierDescription    string
-}
-
-func (q *Queries) User(ctx context.Context, id string) (UserRow, error) {
-	row := q.db.QueryRowContext(ctx, user, id)
-	var i UserRow
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.RealName,
-		&i.Pronouns,
-		&i.AvatarUrl,
-		&i.JoinedAt,
-		&i.TierPrice,
-		&i.TierIsOneTime,
-		&i.TierIsCustomAmount,
-		&i.TierStartedAt,
-		&i.TierRenewedAt,
-		&i.TierID,
-		&i.TierName,
-		&i.TierDescription,
-	)
-	return i, err
 }
 
 const userConfig = `-- name: UserConfig :one

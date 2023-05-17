@@ -33,26 +33,17 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			var_1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		// DocType
+		_, err = templBuffer.WriteString(`<!doctype html>`)
+		if err != nil {
+			return err
+		}
 		// TemplElement
 		var_2 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 			templBuffer, templIsBuffer := w.(*bytes.Buffer)
 			if !templIsBuffer {
 				templBuffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templBuffer)
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<main")
-			if err != nil {
-				return err
-			}
-			// Element Attributes
-			_, err = templBuffer.WriteString(" id=\"index\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(">")
-			if err != nil {
-				return err
 			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<header>")
@@ -298,6 +289,11 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			if err != nil {
 				return err
 			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<nav>")
 			if err != nil {
@@ -477,6 +473,11 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			if err != nil {
 				return err
 			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<section>")
 			if err != nil {
@@ -501,25 +502,12 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			if err != nil {
 				return err
 			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<aside>")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("</aside>")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("</main>")
-			if err != nil {
-				return err
-			}
 			if !templIsBuffer {
 				_, err = io.Copy(w, templBuffer)
 			}
 			return err
 		})
-		err = layouts.Main("", site, owner, layouts.MainOpts{Me: opts.Me}).Render(templ.WithChildren(ctx, var_2), templBuffer)
+		err = layouts.Main("index", "", site, owner).Render(templ.WithChildren(ctx, var_2), templBuffer)
 		if err != nil {
 			return err
 		}

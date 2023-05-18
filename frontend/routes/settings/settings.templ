@@ -4,6 +4,7 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
+import "strings"
 
 type settingsData struct {
 	Me				 *onlygithub.User
@@ -11,16 +12,22 @@ type settingsData struct {
 	SiteConfig *onlygithub.SiteConfig
 }
 
-templ checkbox(id, title, desc string, checked bool) {
-	<label for={ id }>
+templ input(id, title, desc string, classes ...string) {
+	<label for={ id } class={ "templated " + strings.Join(classes, " ") }>
 		<p>
 			{ title } <br /> <small>{ desc }</small>
 		</p>
+		{ children... }
+	</label>
+}
+
+templ checkbox(id, title, desc string, checked bool) {
+	@input(id, title, desc, "checkbox-input") {
 		<div class="big-checkbox">
 			<input type="checkbox" id={ id } name={ id } checked?={ checked } />
 			<div class="checkbox"></div>
 		</div>
-	</label>
+	}
 }
 
 templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, data settingsData) {
@@ -33,29 +40,157 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 			Settings
 		</h1>
 
-		<section>
-			<h2>Preferences</h2>
-			<form id="user-config-form" method="post">
-				<formset class="toggles">
-					@checkbox("show-comments", "Show comments", "Show or hide comments on the homepage", data.MeConfig.ShowComments)
-					@checkbox("anonymous", "Anonymous", "Hide your username from other users", data.MeConfig.Anonymous)
-				</formset>
-	
-				<button type="submit">
-					@components.Icon("save", 0)
-					Save
+		<form id="user-config-form" method="post" action="/settings/user" enctype="multipart/form-data">
+			<hgroup>
+				<h2>Preferences</h2>
+				<button type="submit" title="Save">
+					@components.Icon("save", components.InlineIcon)
 				</button>
-			</form>
-		</section>
+			</hgroup>
 
-		<section>
-			<h2>Account</h2>
-			<form id="logout" method="post" action="/logout">
-				<button type="submit" class="del">
-					@components.Icon("logout", 0)
-					Log out
-				</button>
+			<formset class="toggles">
+				{!checkbox(
+					"show-comments",
+					"Show comments",
+					"Show or hide comments on the homepage",
+					data.MeConfig.ShowComments,
+				)}
+				{!checkbox(
+					"anonymous",
+					"Anonymous",
+					"Hide your username from other users",
+					data.MeConfig.Anonymous,
+				)}
+			</formset>
+		</form>
+
+		if data.SiteConfig != nil {
+			<form id="site-settings-form" method="post" action="/settings/site" enctype="multipart/form-data">
+				<hgroup>
+					<h2>Site Settings</h2>
+					<button type="submit" title="Save">
+						@components.Icon("save", components.InlineIcon)
+					</button>
+				</hgroup>
+
+				<formset>
+					@input("banner", "Banner", "Upload a banner for your site", "multiline") {
+						<input type="file" name="banner" id="banner" accept="image/*" />
+					}
+
+					@input("description", "Description", "A short description of your site (HTML is allowed)", "multiline") {
+						<textarea name="description" id="description" rows="5" class="code grow">
+							{ string(data.SiteConfig.Description) }
+						</textarea>
+					}
+
+					@input("about", "About", "Contents of the About page (HTML is allowed)", "multiline") {
+						<textarea name="about" id="about" rows="5" class="code grow">
+							{ string(data.SiteConfig.About) }
+						</textarea>
+					}
+
+					{!checkbox(
+						"allow-dms",
+						"Allow Direct Messages",
+						"Whether or not users can send DMs to you",
+						data.SiteConfig.AllowDMs,
+					)}
+					{!checkbox(
+						"allow-comments",
+						"Allow Comments",
+						"Whether or not users can comment on posts",
+						data.SiteConfig.AllowComments,
+					)}
+					{!checkbox(
+						"allow-reactions",
+						"Allow Reactions",
+						"Whether or not users can react to posts",
+						data.SiteConfig.AllowReactions,
+					)}
+
+					@input("homepage-visibility", "Homepage Visibility", "How accessible the homepage and its posts are") {
+						<select name="homepage-visibility" id="homepage-visibility">
+							<option
+								value={ string(onlygithub.NotVisible) }
+								selected?={ data.SiteConfig.HomepageVisibility == onlygithub.NotVisible }
+							>
+								Nobody
+							</option>
+
+							<option
+								value={ string(onlygithub.VisibleToSponsors) }
+								selected?={ data.SiteConfig.HomepageVisibility == onlygithub.VisibleToSponsors }
+							>
+								Sponsors only
+							</option>
+
+							<option
+								value={ string(onlygithub.VisibleToPrivate) }
+								selected?={ data.SiteConfig.HomepageVisibility == onlygithub.VisibleToPrivate }
+							>
+								Logged-in only
+							</option>
+
+							<option
+								value={ string(onlygithub.VisibleToPublic) }
+								selected?={ data.SiteConfig.HomepageVisibility == "hidden" }
+							>
+								Everyone
+							</option>
+						</select>
+					}
+
+					<formset>
+						<h3>Socials</h3>
+						<div class="grid">
+							<label for="twitter">Twitter</label>
+							<input type="text" name="twitter" id="twitter" value={ data.SiteConfig.Socials.Twitter } />
+
+							<label for="youtube">YouTube</label>
+							<input type="text" name="youtube" id="youtube" value={ data.SiteConfig.Socials.YouTube } />
+
+							<label for="github">GitHub</label>
+							<input type="text" name="github" id="github" value={ data.SiteConfig.Socials.GitHub } />
+
+							<label for="twitch">Twitch</label>
+							<input type="text" name="twitch" id="twitch" value={ data.SiteConfig.Socials.Twitch } />
+
+							<label for="discord">Discord</label>
+							<input type="text" name="discord" id="discord" value={ data.SiteConfig.Socials.Discord } />
+
+							<label for="instagram">Instagram</label>
+							<input type="text" name="instagram" id="instagram" value={ data.SiteConfig.Socials.Instagram } />
+
+							<label for="matrix">Matrix</label>
+							<input type="text" name="matrix" id="matrix" value={ data.SiteConfig.Socials.Matrix } />
+
+							<label for="reddit">Reddit</label>
+							<input type="text" name="reddit" id="reddit" value={ data.SiteConfig.Socials.Reddit } />
+
+							<label for="facebook">Facebook</label>
+							<input type="text" name="facebook" id="facebook" value={ data.SiteConfig.Socials.Facebook } />
+
+							<label for="mastodon">Mastodon</label>
+							<input type="text" name="mastodon" id="mastodon" value={ data.SiteConfig.Socials.Mastodon } />
+						</div>
+					</formset>
+
+					@input("custom-css", "Custom CSS", "Custom CSS to inject into the page", "multiline") {
+						<textarea name="custom-css" id="custom-css" rows="5" class="code grow">
+							{ data.SiteConfig.CustomCSS }
+						</textarea>
+					}
+				</formset>
 			</form>
-		</section>
+		}
+
+		<form id="logout" method="post" action="/logout">
+			<h2>Account</h2>
+			<button type="submit" class="del">
+				@components.Icon("logout", 0)
+				Log out
+			</button>
+		</form>
 	}
 }

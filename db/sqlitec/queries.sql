@@ -43,6 +43,15 @@ SELECT * FROM assets WHERE id = ? AND type = 'image';
 -- name: PostAsset :one
 SELECT * FROM assets WHERE id = ? AND type = 'post';
 
+-- name: DeleteImageAssets :exec
+DELETE FROM assets WHERE id IN ? AND type = 'image';
+
+-- -- name: UnusedImageAssetIDs :many
+-- SELECT assets.id
+-- FROM ASSETS
+-- LEFT JOIN posts ON posts.image_asset_id = assets.id
+-- WHERE posts.id IS NULL AND assets.type = 'image';
+
 -- name: UserConfig :one
 SELECT user_config FROM users WHERE id = ?;
 

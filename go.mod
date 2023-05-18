@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Khan/genqlient v0.5.0
 	github.com/a-h/templ v0.2.282
-	github.com/diamondburned/hrt v0.0.0-20230507073749-aec7f274358d
+	github.com/diamondburned/hrt v0.0.0-20230518062556-4f152ff38a7a
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -20,6 +20,7 @@ require (
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/goji/param v0.0.0-20160927210335-d7f49fd7d1ed // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect

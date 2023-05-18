@@ -466,7 +466,7 @@ html.is-animating body.main > main {
   width: 100%;
   margin-bottom: 1em;
 }
-#settings form > formset {
+#settings form formset {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -485,11 +485,12 @@ html.is-animating body.main > main {
 #settings form .grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-gap: 0.5em;
+  grid-gap: 1em;
 }
 @media (max-width: 500px) {
   #settings form .grid {
     grid-template-columns: 1fr;
+    grid-gap: 0.5em;
   }
   #settings form .grid > *:nth-child(even) {
     margin-bottom: 0.5em;
@@ -508,12 +509,23 @@ html.is-animating body.main > main {
 #settings form label.multiline > * {
   width: 100%;
 }
+#settings form label > *:nth-child(2) {
+  margin-left: auto;
+}
+@media (max-width: 500px) {
+  #settings form label:not(.checkbox-input) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+  }
+  #settings form label:not(.checkbox-input) > *:nth-child(2) {
+    margin-left: 0;
+    width: 100%;
+  }
+}
 #settings form label p {
   margin: 0;
   margin-right: 0.5em;
-}
-#settings form label .big-checkbox {
-  margin-left: auto;
 }
 #settings form label .big-checkbox input {
   width: 0;

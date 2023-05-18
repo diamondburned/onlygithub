@@ -155,3 +155,29 @@ func LoggedInOnly(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// ParseForm is a middleware that parses the form.
+func ParseForm(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to parse form"))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+const defaultMaxMemory = 1 << 20 // 1 MB
+
+// ParseMultipartForm is a middleware that parses the multipart form.
+func ParseMultipartForm(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil {
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to parse multipart form"))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

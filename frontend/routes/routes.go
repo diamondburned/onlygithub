@@ -6,6 +6,7 @@ import (
 	"github.com/diamondburned/hrt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"libdb.so/onlygithub/dist"
 	"libdb.so/onlygithub/frontend"
 	"libdb.so/onlygithub/frontend/layouts"
 	"libdb.so/onlygithub/frontend/routes/admin"
@@ -25,7 +26,7 @@ func New(d frontend.Deps) http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(oauthMiddleware.Use())
 
-	r.Mount("/static", frontend.StaticHandler())
+	r.Mount("/static", frontend.TryFiles(dist.StaticFS))
 	r.Route("/login", func(r chi.Router) {
 		r.Mount("/github", d.GitHubOAuth)
 		r.Handle("/", redirectHandler("/login/github"))

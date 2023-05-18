@@ -598,11 +598,15 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Element Attributes
-					_, err = templBuffer.WriteString(" name=\"description\"")
+					_, err = templBuffer.WriteString(" is=\"highlighted-code\"")
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" id=\"description\"")
+					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" language=\"html\"")
 					if err != nil {
 						return err
 					}
@@ -610,7 +614,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					_, err = templBuffer.WriteString(" name=\"description\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" id=\"description\"")
 					if err != nil {
 						return err
 					}
@@ -633,7 +641,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("description", "Description", "A short description of your site (HTML is allowed)", "multiline").Render(templ.WithChildren(ctx, var_13), templBuffer)
+				err = input("description", "Description", "A short description of your site in HTML", "multiline").Render(templ.WithChildren(ctx, var_13), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -650,11 +658,15 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Element Attributes
-					_, err = templBuffer.WriteString(" name=\"about\"")
+					_, err = templBuffer.WriteString(" is=\"highlighted-code\"")
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" id=\"about\"")
+					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" language=\"html\"")
 					if err != nil {
 						return err
 					}
@@ -662,7 +674,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					_, err = templBuffer.WriteString(" name=\"about\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" id=\"about\"")
 					if err != nil {
 						return err
 					}
@@ -685,7 +701,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("about", "About", "Contents of the About page (HTML is allowed)", "multiline").Render(templ.WithChildren(ctx, var_15), templBuffer)
+				err = input("about", "About", "Contents of the About page in HTML", "multiline").Render(templ.WithChildren(ctx, var_15), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -1600,11 +1616,15 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Element Attributes
-					_, err = templBuffer.WriteString(" name=\"custom-css\"")
+					_, err = templBuffer.WriteString(" is=\"highlighted-code\"")
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" id=\"custom-css\"")
+					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" language=\"css\"")
 					if err != nil {
 						return err
 					}
@@ -1612,7 +1632,15 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" class=\"code grow\"")
+					_, err = templBuffer.WriteString(" spellcheck=\"false\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" name=\"custom-css\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" id=\"custom-css\"")
 					if err != nil {
 						return err
 					}

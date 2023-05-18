@@ -87,6 +87,7 @@ pkgs.mkShell {
 		templ
 		sqlc
 		deno
+		esbuild
 		dart-sass
 		genqlient
 		pgformatter

@@ -1,23 +1,7 @@
-schema: schema.docs.graphql
-generated: queries.graphql.gen.go
-operations: [queries.graphql]
-# Base64String
-# BigInt
-# Boolean
-# Date
-# DateTime
-# Float
-# GitObjectID
-# GitRefname
-# GitSSHRemote
-# GitTimestamp
-# HTML
-# ID
-# Int
-# PreciseDateTime
-# String
-# URI
-# X509Certificate
+schema: dist/schema.docs.graphql
+generated: internal/gh/queries.graphql.gen.go
+operations: [internal/gh/queries.graphql]
+
 bindings:
   Base64String: { type: string }
   BigInt: { type: int64 }

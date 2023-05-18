@@ -2,41 +2,42 @@
 
 STYLES = $(shell find frontend/styles -type f)
 TEMPLS = $(shell find frontend -type f -name '*.templ')
-
-build: frontend internal/gh db
-	mkdir -p build
-	go build -o build/onlyserve ./cmd/onlyserve
-
-build/github/schema.docs.graphql:
-	mkdir -p build/github
-	wget -P build/github/schema.docs.graphql -q -N https://docs.github.com/public/schema.docs.graphql
+SCRIPTS = $(shell find frontend/scripts -type f)
 
 
-frontend: frontend/static/styles.css $(TEMPLS)
+
+build: frontend internal/gh db dist
+	mkdir -p dist
+	go build -o dist/onlyserve ./cmd/onlyserve
+
+dev:
+	saq -- bash -c 'make && ./dist/onlyserve --http localhost:8081'
+
+
+
+dist: dist/schema.docs.graphql dist/static
+
+dist/static: dist/static/script.js dist/static/styles.css
+
+dist/static/script.js: $(SCRIPTS)
+	./frontend/bundle.js ./frontend/scripts/index.js dist/static/script.js
+
+dist/static/styles.css: frontend/styles.scss $(STYLES)
+	sass ./frontend/styles.scss ./dist/static/styles.css
+
+dist/schema.docs.graphql:
+	wget -O dist/schema.docs.graphql https://gist.githubusercontent.com/diamondburned/6913a10f8c4ab97fbe341002b9d57840/raw/a610b7dd1fe7fb10e10680d132e5eb30ff6920b1/schema.docs.graphql
+
+frontend: $(TEMPLS)
 	cd frontend && templ generate
 	touch frontend
 
-frontend/static/styles.css: frontend/styles.scss $(STYLES)
-	cd frontend && sass styles.scss static/styles.css
-
-
 internal/gh: internal/gh/queries.graphql.gen.go
 
-internal/gh/schema.docs.graphql.gz:
-	mkdir -p internal/gh
-	curl -sL https://docs.github.com/public/schema.docs.graphql | gzip - > internal/gh/schema.docs.graphql.gz
-
-internal/gh/queries.graphql.gen.go: internal/gh/queries.graphql internal/gh/genqlient.yaml internal/gh/schema.docs.graphql.gz
-	gzip -d internal/gh/schema.docs.graphql.gz
-	cd internal/gh/ && genqlient
-	gzip -f internal/gh/schema.docs.graphql
-
+internal/gh/queries.graphql.gen.go: internal/gh/queries.graphql genqlient.yaml dist/schema.docs.graphql
+	genqlient
 
 db: db/sqlitec
 
 db/sqlitec: db/sqlc.json db/sqlitec/*.sql
 	cd db && sqlc generate
-
-
-dev:
-	saq -- bash -c 'make && ./build/onlyserve --http localhost:8081'

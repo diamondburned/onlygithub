@@ -2,8 +2,10 @@ package frontend
 
 import (
 	"context"
-	"embed"
+	"io"
+	"io/fs"
 	"net/http"
+	"strings"
 
 	"github.com/diamondburned/hrt"
 	"github.com/pkg/errors"
@@ -13,23 +15,6 @@ import (
 	"libdb.so/onlygithub/internal/auth"
 	"libdb.so/onlygithub/internal/gh"
 )
-
-//go:embed static
-var staticFS embed.FS
-
-// StaticHandler returns a handler that serves the /static folder. The files in
-// /static will be served from root.
-func StaticHandler() http.Handler {
-	return http.FileServer(http.FS(staticFS))
-}
-
-// ServeJS creates a new handler that serves the given JS blob.
-func ServeJS(blob string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/javascript")
-		w.Write([]byte(blob))
-	}
-}
 
 type ctxKey int
 
@@ -118,14 +103,17 @@ func (d *Deps) RenderingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// SiteFromRequest returns the site config from the request.
 func SiteFromRequest(r *http.Request) *onlygithub.SiteConfig {
 	return r.Context().Value(siteKey).(*onlygithub.SiteConfig)
 }
 
+// OwnerFromRequest returns the owner from the request.
 func OwnerFromRequest(r *http.Request) *onlygithub.User {
 	return r.Context().Value(ownerKey).(*onlygithub.User)
 }
 
+// SessionFromRequest returns the session from the request.
 func SessionFromRequest(r *http.Request) *Session {
 	v, _ := r.Context().Value(sessionKey).(*Session)
 	return v
@@ -144,6 +132,7 @@ func OwnerOnly(next http.Handler) http.Handler {
 	})
 }
 
+// LoggedInOnly is a middleware that checks if the user is logged in.
 func LoggedInOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := SessionFromRequest(r)
@@ -179,5 +168,49 @@ func ParseMultipartForm(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+// TryFiles returns a handler that tries to serve the files from the filesystems
+// in order. If none of the filesystems have the file, it will serve the
+// NotFoundHandler.
+func TryFiles(fses ...fs.FS) http.Handler {
+	errNotFound := errors.New("file not found")
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Path
+		if name == "/" {
+			name = "."
+		} else {
+			name = strings.TrimPrefix(name, "/")
+		}
+
+		for _, fs := range fses {
+			f, err := fs.Open(name)
+			if err != nil {
+				continue
+			}
+			defer f.Close()
+
+			fi, err := f.Stat()
+			if err != nil {
+				layouts.RenderError(w, r, errors.Wrap(err, "failed to stat file"))
+				return
+			}
+
+			if fi.IsDir() {
+				continue
+			}
+
+			if seeker, ok := f.(io.ReadSeeker); ok {
+				http.ServeContent(w, r, fi.Name(), fi.ModTime(), seeker)
+			} else {
+				io.Copy(w, f)
+			}
+
+			return
+		}
+
+		layouts.RenderError(w, r, errNotFound)
 	})
 }

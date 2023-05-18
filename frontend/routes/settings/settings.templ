@@ -78,14 +78,20 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						<input type="file" name="banner" id="banner" accept="image/*" />
 					}
 
-					@input("description", "Description", "A short description of your site (HTML is allowed)", "multiline") {
-						<textarea name="description" id="description" rows="5" class="code grow">
+					@input("description", "Description", "A short description of your site in HTML", "multiline") {
+						<textarea
+							is="highlighted-code" class="code grow" language="html" rows="5"
+							name="description" id="description"
+						>
 							{ string(data.SiteConfig.Description) }
 						</textarea>
 					}
 
-					@input("about", "About", "Contents of the About page (HTML is allowed)", "multiline") {
-						<textarea name="about" id="about" rows="5" class="code grow">
+					@input("about", "About", "Contents of the About page in HTML", "multiline") {
+						<textarea
+							is="highlighted-code" class="code grow" language="html" rows="5"
+							name="about" id="about"
+						>
 							{ string(data.SiteConfig.About) }
 						</textarea>
 					}
@@ -177,7 +183,10 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 					</formset>
 
 					@input("custom-css", "Custom CSS", "Custom CSS to inject into the page", "multiline") {
-						<textarea name="custom-css" id="custom-css" rows="5" class="code grow">
+						<textarea
+							is="highlighted-code" class="code grow" language="css" rows="5" spellcheck="false"
+							name="custom-css" id="custom-css"
+						>
 							{ data.SiteConfig.CustomCSS }
 						</textarea>
 					}

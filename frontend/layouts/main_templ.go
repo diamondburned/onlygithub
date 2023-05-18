@@ -41,7 +41,7 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 			return err
 		}
 		// Element Attributes
-		_, err = templBuffer.WriteString(" src=\"/static/swup.js\"")
+		_, err = templBuffer.WriteString(" src=\"/static/script.js\"")
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,7 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString(" async")
+		_, err = templBuffer.WriteString(" async=\"\"")
 		if err != nil {
 			return err
 		}

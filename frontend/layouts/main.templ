@@ -2,6 +2,7 @@ package layouts
 
 import "libdb.so/onlygithub"
 import "libdb.so/onlygithub/frontend/components"
+import "libdb.so/onlygithub/internal/templutil"
 
 type MainOpts struct {
 	Me *onlygithub.User // current user, optional
@@ -9,6 +10,7 @@ type MainOpts struct {
 
 templ Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User) {
 	@components.Head(components.HeadOpts{Title: title, Owner: owner})
+	@templutil.Style(site.CustomCSS)
 	<script src="/static/script.js" type="module" async=""></script>
 
 	<body class="main">

@@ -12,6 +12,7 @@ import "bytes"
 // GoExpression
 import "libdb.so/onlygithub"
 import "libdb.so/onlygithub/frontend/components"
+import "libdb.so/onlygithub/internal/templutil"
 
 type MainOpts struct {
 	Me *onlygithub.User // current user, optional
@@ -32,6 +33,11 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		ctx = templ.ClearChildren(ctx)
 		// TemplElement
 		err = components.Head(components.HeadOpts{Title: title, Owner: owner}).Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		// TemplElement
+		err = templutil.Style(site.CustomCSS).Render(ctx, templBuffer)
 		if err != nil {
 			return err
 		}

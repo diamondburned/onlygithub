@@ -46,3 +46,15 @@ func countIndent(line string) int {
 	}
 	return 0
 }
+
+// Style adds a <style> tag to the page with the given CSS. It escapes the CSS
+// to prevent XSS.
+func Style(css string) templ.Component {
+	css = template.HTMLEscapeString(css)
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		io.WriteString(w, "<style>")
+		io.WriteString(w, string(css))
+		io.WriteString(w, "</style>")
+		return nil
+	})
+}

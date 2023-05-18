@@ -78,6 +78,7 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 		onlygithub.Socials
 		Description        string                `form:"description"`
 		About              string                `form:"about"`
+		CustomCSS          string                `form:"custom-css"`
 		AllowComments      bool                  `form:"allow-comments"`
 		AllowDMs           bool                  `form:"allow-dms"`
 		AllowReactions     bool                  `form:"allow-reactions"`
@@ -100,6 +101,7 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 	site.Socials = form.Socials
 	site.Description = template.HTML(form.Description)
 	site.About = template.HTML(form.About)
+	site.CustomCSS = form.CustomCSS
 	site.AllowComments = form.AllowComments
 	site.AllowDMs = form.AllowDMs
 	site.AllowReactions = form.AllowReactions

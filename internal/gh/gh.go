@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"html/template"
 
-	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 	"libdb.so/onlygithub"
 
@@ -30,7 +29,6 @@ type Paginator[T any] interface {
 
 // Client wraps around the GitHub API client.
 type Client struct {
-	*githubv4.Client
 	genqlient genqlient.Client
 	ctx       context.Context
 }
@@ -40,7 +38,6 @@ type Client struct {
 func NewClient(ctx context.Context, tokenSource oauth2.TokenSource) *Client {
 	client := oauth2.NewClient(ctx, tokenSource)
 	return &Client{
-		Client:    githubv4.NewClient(client),
 		genqlient: genqlient.NewClient("https://api.github.com/graphql", client),
 		ctx:       ctx,
 	}

@@ -37,7 +37,7 @@ internal/gh: internal/gh/queries.graphql.gen.go
 internal/gh/queries.graphql.gen.go: internal/gh/queries.graphql genqlient.yaml dist/schema.docs.graphql
 	genqlient
 
-db: db/sqlitec
+db: db/sqlitec/db.gen.go
 
-db/sqlitec: db/sqlc.json db/sqlitec/*.sql
+db/sqlitec/db.gen.go: db/sqlc.json db/sqlitec/*.sql
 	cd db && sqlc generate

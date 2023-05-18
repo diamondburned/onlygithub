@@ -13,6 +13,7 @@ type Database interface {
 	auth.GitHubTokenService
 	onlygithub.UserService
 	onlygithub.TierService
+	onlygithub.ImageService
 	onlygithub.ConfigService
 	onlygithub.OAuthTokenService
 	onlygithub.PrivilegedUserService

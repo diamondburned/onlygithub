@@ -1,10 +1,15 @@
 package db
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"html/template"
+	"io"
+	"io/ioutil"
+	"strconv"
+	"strings"
 	"time"
 
 	_ "embed"
@@ -21,8 +26,11 @@ import (
 	libsqlite "modernc.org/sqlite/lib"
 )
 
+const sqliteSchemaSeparator = "\n-- MIGRATE --\n"
+
 //go:embed sqlitec/schema.sql
 var sqliteSchema string
+var sqliteSchemaVersions = strings.Split(sqliteSchema, sqliteSchemaSeparator)
 
 // SQLite implements various database interfaces using SQLite.
 type SQLite struct {
@@ -40,8 +48,26 @@ func NewSQLite(uri string) (*SQLite, error) {
 		return nil, err
 	}
 
-	if _, err := db.Exec(sqliteSchema); err != nil {
-		return nil, errors.Wrap(err, "failed to execute schema")
+	if _, err := db.Exec(sqliteSchemaVersions[0]); err != nil {
+		return nil, errors.Wrap(err, "failed to execute initial migration")
+	}
+
+	var userVersion int
+	if err := db.QueryRow("PRAGMA user_version").Scan(&userVersion); err != nil {
+		return nil, errors.Wrap(err, "failed to get user_version")
+	}
+
+	if userVersion < len(sqliteSchemaVersions) {
+		for i, v := range sqliteSchemaVersions[userVersion:] {
+			if _, err := db.Exec(v); err != nil {
+				return nil, errors.Wrapf(err, "failed to execute migration %d", i+userVersion)
+			}
+		}
+	}
+
+	userVersionStr := strconv.Itoa(len(sqliteSchemaVersions))
+	if _, err := db.Exec("PRAGMA user_version = " + userVersionStr); err != nil {
+		return nil, errors.Wrap(err, "failed to set user_version")
 	}
 
 	return &SQLite{
@@ -201,6 +227,75 @@ func (s *SQLite) MakeOwner(ctx context.Context, username string) error {
 	return sqliteErr(err)
 }
 
+func (s *SQLite) Image(ctx context.Context, id onlygithub.ID) (*onlygithub.ImageAsset, error) {
+	a, err := s.q.ImageAsset(ctx, id.String())
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return &onlygithub.ImageAsset{
+		Asset: onlygithub.Asset{
+			ID:          id,
+			Visibility:  onlygithub.Visibility(a.Visibility),
+			MinimumCost: onlygithub.Cents(a.MinimumCost),
+			LastUpdated: nullTimePtr(a.LastUpdated),
+		},
+		Filename: a.Filename,
+	}, nil
+}
+
+func (s *SQLite) ImageData(ctx context.Context, id onlygithub.ID) (io.ReadCloser, error) {
+	b, err := s.q.ImageData(ctx, id.String())
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return ioutil.NopCloser(bytes.NewReader(b)), nil
+}
+
+func (s *SQLite) UploadImage(ctx context.Context, req onlygithub.UploadImageRequest, r io.Reader) (*onlygithub.ImageAsset, error) {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	id := onlygithub.GenerateID()
+
+	updated, err := s.q.CreateImageAsset(ctx, sqlitec.CreateImageAssetParams{
+		ID:          id.String(),
+		Data:        b,
+		Visibility:  string(req.Visibility),
+		MinimumCost: int64(req.MinimumCost),
+		Filename:    req.Filename,
+	})
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return &onlygithub.ImageAsset{
+		Asset: onlygithub.Asset{
+			ID:          id,
+			Visibility:  req.Visibility,
+			MinimumCost: req.MinimumCost,
+			LastUpdated: nullTimePtr(updated),
+		},
+		Filename: req.Filename,
+	}, nil
+}
+
+func (s *SQLite) DeleteImage(ctx context.Context, id onlygithub.ID) error {
+	err := s.q.DeleteImageAsset(ctx, id.String())
+	return sqliteErr(err)
+}
+
+func (s *SQLite) SetImageVisibility(ctx context.Context, id onlygithub.ID, visibility onlygithub.Visibility) error {
+	err := s.q.SetAssetVisibility(ctx, sqlitec.SetAssetVisibilityParams{
+		ID:         id.String(),
+		Visibility: string(visibility),
+	})
+	return sqliteErr(err)
+}
+
 func (s *SQLite) SiteConfig(ctx context.Context) (*onlygithub.SiteConfig, error) {
 	cfg, _ := s.q.SiteConfig(ctx)
 	if cfg != nil {
@@ -322,4 +417,11 @@ func sqliteErr(err error) error {
 	}
 
 	return onlygithub.WrapInternalError(err)
+}
+
+func nullTimePtr(t sql.NullTime) *time.Time {
+	if t.Valid {
+		return &t.Time
+	}
+	return nil
 }

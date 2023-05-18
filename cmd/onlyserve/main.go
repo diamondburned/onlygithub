@@ -87,6 +87,7 @@ func serve() {
 	h := routes.New(frontend.Deps{
 		GitHubOAuth: ghOAuth,
 		Config:      db,
+		Images:      db,
 		Users:       db,
 		Tiers:       db,
 	})

@@ -72,7 +72,19 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 					return err
 				}
 				// Element Attributes
-				_, err = templBuffer.WriteString(" src=\"/images/{ *site.BannerAsset }\"")
+				_, err = templBuffer.WriteString(" src=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString("/images/" + site.BannerAsset.String()))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
 				if err != nil {
 					return err
 				}

@@ -53,13 +53,6 @@ func (h *handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.isrv.ImageData(r.Context(), id)
-	if err != nil {
-		layouts.RenderError(w, r, err)
-		return
-	}
-	defer data.Close()
-
 	mimeType := mime.TypeByExtension(filepath.Ext(image.Filename))
 	if mimeType == "" {
 		mimeType = "application/octet-stream"
@@ -67,6 +60,14 @@ func (h *handler) get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", mimeType)
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename=%q`, image.Filename))
+	w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
+
+	data, err := h.isrv.ImageData(r.Context(), id)
+	if err != nil {
+		layouts.RenderError(w, r, err)
+		return
+	}
+	defer data.Close()
 
 	if _, err := io.Copy(w, data); err != nil {
 		layouts.RenderError(w, r, err)

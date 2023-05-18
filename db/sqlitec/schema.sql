@@ -2,6 +2,8 @@ PRAGMA foreign_keys = ON;
 PRAGMA journal_mode = WAL;
 PRAGMA strict = ON;
 
+-- MIGRATE --
+
 CREATE TABLE IF NOT EXISTS oauth_tokens (
 	token TEXT PRIMARY KEY, -- our locally generated token
 	provider TEXT NOT NULL,
@@ -50,3 +52,7 @@ CREATE TABLE IF NOT EXISTS assets (
 	minimum_cost INTEGER NOT NULL, -- cents
 	last_updated TIMESTAMP
 );
+
+-- MIGRATE --
+
+ALTER TABLE assets ADD COLUMN filename TEXT NOT NULL DEFAULT '';

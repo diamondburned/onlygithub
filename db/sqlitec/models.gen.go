@@ -16,6 +16,7 @@ type Asset struct {
 	Visibility  string
 	MinimumCost int64
 	LastUpdated sql.NullTime
+	Filename    string
 }
 
 type OauthToken struct {

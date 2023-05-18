@@ -37,14 +37,25 @@ REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount,
 -- name: DeleteUserTier :exec
 DELETE FROM user_tiers WHERE user_id = ?;
 
--- name: ImageAsset :one
-SELECT * FROM assets WHERE id = ? AND type = 'image';
-
 -- name: PostAsset :one
 SELECT * FROM assets WHERE id = ? AND type = 'post';
 
--- name: DeleteImageAssets :exec
-DELETE FROM assets WHERE id IN ? AND type = 'image';
+-- name: ImageAsset :one
+SELECT filename, visibility, minimum_cost, last_updated FROM assets WHERE id = ? AND type = 'image';
+
+-- name: ImageData :one
+SELECT data FROM assets WHERE id = ? AND type = 'image';
+
+-- name: DeleteImageAsset :exec
+DELETE FROM assets WHERE id = ? AND type = 'image';
+
+-- name: CreateImageAsset :one
+INSERT INTO assets (id, type, data, filename, visibility, minimum_cost, last_updated)
+	VALUES (?, 'image', ?, ?, ?, ?, datetime())
+	RETURNING last_updated;
+
+-- name: SetAssetVisibility :exec
+UPDATE assets SET visibility = ? WHERE id = ?;
 
 -- -- name: UnusedImageAssetIDs :many
 -- SELECT assets.id

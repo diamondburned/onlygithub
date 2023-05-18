@@ -16,7 +16,7 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 		<header>
 			<div class="user-banner">
 				if site.BannerAsset != nil {
-					<img src="/images/{ *site.BannerAsset }" alt="banner"/>
+					<img src={ "/images/" + site.BannerAsset.String() } alt="banner"/>
 				}
 			</div>
 

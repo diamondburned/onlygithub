@@ -262,10 +262,6 @@ type ImageAsset struct {
 	// Filename is the filename of the asset. It is used to reference the asset
 	// in the content.
 	Filename string `json:"filename"`
-	// Width is the width of the image.
-	Width int `json:"width"`
-	// Height is the height of the image.
-	Height int `json:"height"`
 }
 
 // Comment is a comment on a piece of content.

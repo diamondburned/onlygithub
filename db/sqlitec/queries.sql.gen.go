@@ -11,6 +11,33 @@ import (
 	"time"
 )
 
+const createImageAsset = `-- name: CreateImageAsset :one
+INSERT INTO assets (id, type, data, filename, visibility, minimum_cost, last_updated)
+	VALUES (?, 'image', ?, ?, ?, ?, datetime())
+	RETURNING last_updated
+`
+
+type CreateImageAssetParams struct {
+	ID          string
+	Data        []byte
+	Filename    string
+	Visibility  string
+	MinimumCost int64
+}
+
+func (q *Queries) CreateImageAsset(ctx context.Context, arg CreateImageAssetParams) (sql.NullTime, error) {
+	row := q.db.QueryRowContext(ctx, createImageAsset,
+		arg.ID,
+		arg.Data,
+		arg.Filename,
+		arg.Visibility,
+		arg.MinimumCost,
+	)
+	var last_updated sql.NullTime
+	err := row.Scan(&last_updated)
+	return last_updated, err
+}
+
 const createTier = `-- name: CreateTier :exec
 INSERT INTO tiers (id, name, price, description)
 	VALUES (?, ?, ?, ?)
@@ -42,6 +69,15 @@ func (q *Queries) DeleteAllTiers(ctx context.Context) error {
 	return err
 }
 
+const deleteImageAsset = `-- name: DeleteImageAsset :exec
+DELETE FROM assets WHERE id = ? AND type = 'image'
+`
+
+func (q *Queries) DeleteImageAsset(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteImageAsset, id)
+	return err
+}
+
 const deleteToken = `-- name: DeleteToken :exec
 DELETE FROM oauth_tokens WHERE token = ? AND provider = ?
 `
@@ -66,21 +102,37 @@ func (q *Queries) DeleteUserTier(ctx context.Context, userID string) error {
 }
 
 const imageAsset = `-- name: ImageAsset :one
-SELECT id, type, data, visibility, minimum_cost, last_updated FROM assets WHERE id = ? AND type = 'image'
+SELECT filename, visibility, minimum_cost, last_updated FROM assets WHERE id = ? AND type = 'image'
 `
 
-func (q *Queries) ImageAsset(ctx context.Context, id string) (Asset, error) {
+type ImageAssetRow struct {
+	Filename    string
+	Visibility  string
+	MinimumCost int64
+	LastUpdated sql.NullTime
+}
+
+func (q *Queries) ImageAsset(ctx context.Context, id string) (ImageAssetRow, error) {
 	row := q.db.QueryRowContext(ctx, imageAsset, id)
-	var i Asset
+	var i ImageAssetRow
 	err := row.Scan(
-		&i.ID,
-		&i.Type,
-		&i.Data,
+		&i.Filename,
 		&i.Visibility,
 		&i.MinimumCost,
 		&i.LastUpdated,
 	)
 	return i, err
+}
+
+const imageData = `-- name: ImageData :one
+SELECT data FROM assets WHERE id = ? AND type = 'image'
+`
+
+func (q *Queries) ImageData(ctx context.Context, id string) ([]byte, error) {
+	row := q.db.QueryRowContext(ctx, imageData, id)
+	var data []byte
+	err := row.Scan(&data)
+	return data, err
 }
 
 const makeOwner = `-- name: MakeOwner :exec
@@ -117,7 +169,7 @@ func (q *Queries) Owner(ctx context.Context) (User, error) {
 }
 
 const postAsset = `-- name: PostAsset :one
-SELECT id, type, data, visibility, minimum_cost, last_updated FROM assets WHERE id = ? AND type = 'post'
+SELECT id, type, data, visibility, minimum_cost, last_updated, filename FROM assets WHERE id = ? AND type = 'post'
 `
 
 func (q *Queries) PostAsset(ctx context.Context, id string) (Asset, error) {
@@ -130,6 +182,7 @@ func (q *Queries) PostAsset(ctx context.Context, id string) (Asset, error) {
 		&i.Visibility,
 		&i.MinimumCost,
 		&i.LastUpdated,
+		&i.Filename,
 	)
 	return i, err
 }
@@ -181,6 +234,20 @@ func (q *Queries) SaveToken(ctx context.Context, arg SaveTokenParams) error {
 		arg.RefreshToken,
 		arg.ExpiresIn,
 	)
+	return err
+}
+
+const setAssetVisibility = `-- name: SetAssetVisibility :exec
+UPDATE assets SET visibility = ? WHERE id = ?
+`
+
+type SetAssetVisibilityParams struct {
+	Visibility string
+	ID         string
+}
+
+func (q *Queries) SetAssetVisibility(ctx context.Context, arg SetAssetVisibilityParams) error {
+	_, err := q.db.ExecContext(ctx, setAssetVisibility, arg.Visibility, arg.ID)
 	return err
 }
 
@@ -333,9 +400,15 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 }
 
 const userConfig = `-- name: UserConfig :one
+
 SELECT user_config FROM users WHERE id = ?
 `
 
+// -- name: UnusedImageAssetIDs :many
+// SELECT assets.id
+// FROM ASSETS
+// LEFT JOIN posts ON posts.image_asset_id = assets.id
+// WHERE posts.id IS NULL AND assets.type = 'image';
 func (q *Queries) UserConfig(ctx context.Context, id string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, userConfig, id)
 	var user_config []byte

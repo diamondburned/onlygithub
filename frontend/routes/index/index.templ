@@ -11,7 +11,7 @@ type indexOpts struct {
 }
 
 templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, opts indexOpts) {
-  <!DOCTYPE html>
+	<!DOCTYPE html>
 	@layouts.Main("index", "", site, owner) {
 		<header>
 			<div class="user-banner">

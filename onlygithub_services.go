@@ -67,6 +67,8 @@ type ImageService interface {
 	// DeleteImage deletes the image with the given ID. If no image exists with
 	// the given ID, an error should be returned.
 	DeleteImage(ctx context.Context, id ID) error
+	// SetImageVisibility sets the visibility of the image with the given ID.
+	SetImageVisibility(ctx context.Context, id ID, visibility Visibility) error
 }
 
 // UploadImageRequest is a request to upload an image.

@@ -21,19 +21,20 @@ $max-page-width: 800px;
 $light-foreground: $black;
 $light-background: $white;
 $light-primary: $blue;
-$light-primary-hover: rgba($blue, 0.4);
+$light-primary-hover: darken($blue, 15%);
 $light-success: $green;
 $light-warning: $orange;
 $light-error: $red;
 $light-dull: $gray;
 $light-border: 1px solid $light-dull;
 $light-shadow: 0 0 0.2em rgba($light-dull, $transparency);
-$light-overlay: rgba($light-foreground, 0.15);
+$light-overlay: rgba($light-foreground, 0.1);
+$light-overlay-hover: rgba($light-foreground, 0.2);
 
 $dark-foreground: $white;
 $dark-background: $black;
 $dark-primary: darken($blue, 5%);
-$dark-primary-hover: rgba($blue, 0.4);
+$dark-primary-hover: lighten($blue, 10%);
 $dark-success: $green;
 $dark-warning: $orange;
 $dark-error: darken($red, 20%);
@@ -41,6 +42,7 @@ $dark-dull: $gray;
 $dark-border: 1px solid $dark-dull;
 $dark-shadow: 0 0 0.2em rgba($dark-dull, $transparency);
 $dark-overlay: rgba($dark-foreground, 0.15);
+$dark-overlay-hover: rgba($dark-foreground, 0.25);
 
 :root {
   --foreground: #{$light-foreground};
@@ -54,6 +56,7 @@ $dark-overlay: rgba($dark-foreground, 0.15);
   --border: #{$light-border};
   --shadow: #{$light-shadow};
   --overlay: #{$light-overlay};
+  --overlay-hover: #{$light-overlay-hover};
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +64,7 @@ $dark-overlay: rgba($dark-foreground, 0.15);
     --foreground: #{$dark-foreground};
     --background: #{$dark-background};
     --primary: #{$dark-primary};
+    --primary-hover: #{$dark-primary-hover};
     --success: #{$dark-success};
     --warning: #{$dark-warning};
     --error: #{$dark-error};
@@ -68,5 +72,6 @@ $dark-overlay: rgba($dark-foreground, 0.15);
     --border: #{$dark-border};
     --shadow: #{$dark-shadow};
     --overlay: #{$dark-overlay};
+    --overlay-hover: #{$dark-overlay-hover};
   }
 }

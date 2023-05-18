@@ -737,6 +737,10 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString(" class=\"markdown-editor\"")
+			if err != nil {
+				return err
+			}
 			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
@@ -795,29 +799,6 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			_, err = templBuffer.WriteString("</form>")
-			if err != nil {
-				return err
-			}
-			// Whitespace (normalised)
-			_, err = templBuffer.WriteString(` `)
-			if err != nil {
-				return err
-			}
-			// Element (void)
-			_, err = templBuffer.WriteString("<meta")
-			if err != nil {
-				return err
-			}
-			// Element Attributes
-			_, err = templBuffer.WriteString(" name=\"swup-script\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(" content=\"/create/create.js\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}

@@ -53,10 +53,6 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString(" defer")
-		if err != nil {
-			return err
-		}
 		_, err = templBuffer.WriteString(">")
 		if err != nil {
 			return err

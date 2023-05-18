@@ -8,6 +8,10 @@
   box-sizing: border-box;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 html,
 body {
   height: 100%;
@@ -62,13 +66,44 @@ a[role="button"] {
 input,
 select,
 button {
-  --input-height: 2.5em;
+  --input-height: 2.25em;
 
-  border: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   outline: none;
-  padding: 0;
+  padding: 0 0.65em;
+  height: var(--input-height);
+  line-height: var(--input-height);
   color: inherit;
-  background: none;
+  background: var(--overlay);
+  transition: all 100ms ease-in-out;
+
+  &:focus {
+    background-color: var(--overlay-hover);
+  }
+}
+
+textarea {
+  background-color: var(--overlay);
+  border: none;
+  border-radius: var(--radius);
+  outline: none;
+  padding: 0.65em;
+  color: inherit;
+  transition: all 100ms ease-in-out;
+
+  &.code {
+    font-family: monospace;
+  }
+
+  &.grow {
+    resize: vertical;
+    overflow-y: hidden;
+  }
+
+  &:focus {
+    background-color: var(--overlay-hover);
+  }
 }
 
 button {
@@ -83,6 +118,8 @@ button {
   justify-content: center;
   gap: 0.45em;
 
+  transition: all 75ms ease-in-out;
+
   &.del {
     --primary: var(--error);
   }
@@ -91,6 +128,10 @@ button {
     background-color: transparent;
     border: 1px solid var(--primary);
     color: var(--primary);
+  }
+
+  &:hover {
+    --primary: var(--primary-hover);
   }
 }
 
@@ -104,7 +145,7 @@ a.back-link {
   line-height: normal;
 
   &:hover {
-    --color: var(--primary);
+    --color: var(--primary-hover);
   }
 }
 

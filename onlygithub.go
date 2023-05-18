@@ -290,12 +290,9 @@ type Reaction struct {
 // SiteConfig describes the configuration of the entire site. There's only one
 // site-wide configuration.
 type SiteConfig struct {
-	// OwnerID is the ID of the owner of the site. This field should not be
-	// modified; the user should manually set the owner ID in the database.
-	OwnerID GitHubID `json:"ownerID,omitempty"`
-	// BannerURL is the URL of the banner image that will be displayed on
+	// BannerAsset is the asset ID of the banner image that will be displayed on
 	// the home page.
-	BannerURL string `json:"bannerURL,omitempty"`
+	BannerAsset *ID `json:"bannerURL,omitempty"`
 	// Description is the description of the site.
 	Description template.HTML `json:"bio,omitempty"`
 	// About is the about section of the site.

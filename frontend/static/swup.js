@@ -1,5 +1,6 @@
 import Swup from "https://cdn.jsdelivr.net/npm/swup@3.0/+esm";
 import Swupscroll from "https://cdn.jsdelivr.net/npm/@swup/scroll-plugin@2.0/+esm";
+import enhance from "./enhance.js";
 
 const swup = new Swup({
   containers: ["main"],
@@ -11,6 +12,8 @@ let previousScripts = [];
 let scriptCounter = 0;
 
 function init() {
+  enhance();
+
   previousScripts.forEach((script) => script.remove());
 
   const main = document.querySelector("main");

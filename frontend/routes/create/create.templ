@@ -91,7 +91,7 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 			</formset>
 
 			<formset class="content-editor">
-				<textarea id="editor" name="content">
+				<textarea id="editor" name="content" class="markdown-editor">
 					{templutil.Literal(`
 						# Hello World
 
@@ -106,7 +106,5 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 				Create
 			</button>
 		</form>
-
-		<meta name="swup-script" content="/create/create.js" />
 	}
 }

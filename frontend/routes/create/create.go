@@ -18,9 +18,6 @@ import (
 	"libdb.so/onlygithub/frontend/layouts"
 )
 
-//go:embed create.js
-var js string
-
 const maxMemory = 2 << 20 // 2 MiB
 
 // Services is a collection of services used by the create page.
@@ -35,7 +32,6 @@ func New(services Services) http.Handler {
 	r.Use(frontend.OwnerOnly)
 
 	r.Get("/", services.get)
-	r.Get("/create.js", frontend.ServeJS(js))
 	r.Post("/", services.post)
 
 	return r

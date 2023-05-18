@@ -1,7 +1,11 @@
 # onlygithub
 
 GitHub Sponsors as a content subscription service provider. Kind of like
-OnlyFans, except you own the content and it uses GitHub Sponsors.
+OnlyFans but you own the content and it uses GitHub Sponsors.
+
+<div align="center">
+  <img src=".github/screenshot01.png" alt="screenshot" width="650px">
+</div>
 
 ## Building
 

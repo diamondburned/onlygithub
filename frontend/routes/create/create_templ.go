@@ -10,6 +10,7 @@ import "io"
 import "bytes"
 
 // GoExpression
+import "libdb.so/onlygithub/internal/templutil"
 import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
@@ -37,24 +38,6 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 		if err != nil {
 			return err
 		}
-		// Element (void)
-		_, err = templBuffer.WriteString("<link")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" rel=\"stylesheet\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" href=\"https://cdn.jsdelivr.net/npm/tiny-markdown-editor@0.1.5/dist/tiny-mde.min.css\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
 		// TemplElement
 		var_2 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 			templBuffer, templIsBuffer := w.(*bytes.Buffer)
@@ -64,6 +47,38 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<h1>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<a")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" href=\"/\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" class=\"back-link\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// TemplElement
+			err = components.Icon("chevron_left", components.InlineIcon).Render(ctx, templBuffer)
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</a>")
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
 			if err != nil {
 				return err
 			}
@@ -138,7 +153,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("image", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("image", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -209,7 +224,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("attach_money", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("attach_money", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -385,7 +400,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("visibility_off", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("visibility_off", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -434,7 +449,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("attach_money", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("attach_money", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -483,7 +498,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("lock", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("lock", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -532,7 +547,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("public", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("public", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -605,7 +620,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("comment", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("comment", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -678,7 +693,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("add_reaction", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("add_reaction", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -726,6 +741,17 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			// StringExpression
+			var var_9 string = templutil.Literal(`
+						# Hello World
+
+						This is a test post. The title will be the first h1, if there is one.
+						You can also drag and drop images into the editor to upload them!
+					`)
+			_, err = templBuffer.WriteString(templ.EscapeString(var_9))
+			if err != nil {
+				return err
+			}
 			_, err = templBuffer.WriteString("</textarea>")
 			if err != nil {
 				return err
@@ -749,7 +775,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// TemplElement
-			err = components.Icon("add", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("add", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -759,8 +785,8 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// Text
-			var_9 := `Create`
-			_, err = templBuffer.WriteString(var_9)
+			var_10 := `Create`
+			_, err = templBuffer.WriteString(var_10)
 			if err != nil {
 				return err
 			}
@@ -772,41 +798,35 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
+			// Element (void)
+			_, err = templBuffer.WriteString("<meta")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" name=\"swup-script\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" content=\"/create/create.js\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
 			if !templIsBuffer {
 				_, err = io.Copy(w, templBuffer)
 			}
 			return err
 		})
 		err = layouts.Main("create", "Create a Post", site, owner).Render(templ.WithChildren(ctx, var_2), templBuffer)
-		if err != nil {
-			return err
-		}
-// RawElement
-		_, err = templBuffer.WriteString("<script")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" type=\"module\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" src=\"/create/create.js\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-// Text
-var_10 := `
-	`
-_, err = templBuffer.WriteString(var_10)
-if err != nil {
-	return err
-}
-		_, err = templBuffer.WriteString("</script>")
 		if err != nil {
 			return err
 		}

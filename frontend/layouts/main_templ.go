@@ -35,6 +35,42 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		if err != nil {
 			return err
 		}
+// RawElement
+		_, err = templBuffer.WriteString("<script")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" src=\"/static/swup.js\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" type=\"module\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" async")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" defer")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+// Text
+var_2 := ``
+_, err = templBuffer.WriteString(var_2)
+if err != nil {
+	return err
+}
+		_, err = templBuffer.WriteString("</script>")
+		if err != nil {
+			return err
+		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<body")
 		if err != nil {
@@ -45,6 +81,16 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		if err != nil {
 			return err
 		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<main")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
 		_, err = templBuffer.WriteString(" id=")
 		if err != nil {
 			return err
@@ -67,6 +113,10 @@ func Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User)
 		}
 		// Children
 		err = var_1.Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</main>")
 		if err != nil {
 			return err
 		}

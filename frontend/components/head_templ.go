@@ -83,6 +83,24 @@ func Head(opts HeadOpts) templ.Component {
 		if err != nil {
 			return err
 		}
+		_, err = templBuffer.WriteString(" href=\"https://cdn.jsdelivr.net/npm/tiny-markdown-editor@0.1.5/dist/tiny-mde.min.css\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (void)
+		_, err = templBuffer.WriteString("<link")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" rel=\"stylesheet\"")
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString(" href=\"https://fonts.googleapis.com/icon?family=Material+Icons\"")
 		if err != nil {
 			return err

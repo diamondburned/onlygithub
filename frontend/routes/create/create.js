@@ -7,8 +7,3 @@ new Editor({
 This is a test post. The title will be the first h1, if there is one.
 You can also drag and drop images into the editor to upload them!`,
 });
-
-const minimumCost = document.body.getElementById("minimum-cost");
-minimumCost.addEventListener("click", () => {
-  minimumCost.value = `$${minimumCost.value}`;
-});

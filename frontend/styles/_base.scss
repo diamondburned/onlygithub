@@ -37,17 +37,17 @@ hr {
 .material-icons {
   cursor: default;
   user-select: none;
-  font-size: 1.35em;
+  font-size: 1.65em;
+  margin: 0 -0.1em;
+  vertical-align: bottom;
+  display: inline-flex;
 
   &.large {
     font-size: 2.25em;
   }
 
   &.inline {
-    font-size: 1.5em;
-    margin: 0 -0.1em;
-    vertical-align: bottom;
-    display: inline-flex;
+    font-size: 1.35em;
   }
 }
 
@@ -92,4 +92,32 @@ button {
     border: 1px solid var(--primary);
     color: var(--primary);
   }
+}
+
+a.back-link {
+  --color: var(--dull);
+
+  color: var(--color);
+  transition: all 75ms ease-in-out;
+  border-right: 1px solid var(--color);
+  margin-right: 0.25em;
+  line-height: normal;
+
+  &:hover {
+    --color: var(--primary);
+  }
+}
+
+// Swup code.
+body.main > main {
+  transition: opacity 100ms linear;
+  opacity: 1;
+
+  @media (prefers-reduced-motion) {
+    transition-duration: 0ms;
+  }
+}
+
+html.is-animating body.main > main {
+  opacity: 0;
 }

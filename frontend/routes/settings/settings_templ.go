@@ -224,6 +224,38 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 			if err != nil {
 				return err
 			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<a")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" href=\"/\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" class=\"back-link\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// TemplElement
+			err = components.Icon("chevron_left", components.InlineIcon).Render(ctx, templBuffer)
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</a>")
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 			// Text
 			var_6 := `Settings`
 			_, err = templBuffer.WriteString(var_6)
@@ -320,7 +352,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				return err
 			}
 			// TemplElement
-			err = components.Icon("save", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("save", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -413,7 +445,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				return err
 			}
 			// TemplElement
-			err = components.Icon("logout", components.InlineIcon).Render(ctx, templBuffer)
+			err = components.Icon("logout", 0).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}

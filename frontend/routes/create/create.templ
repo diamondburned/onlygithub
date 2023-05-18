@@ -1,5 +1,6 @@
 package create
 
+import "libdb.so/onlygithub/internal/templutil"
 import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
@@ -11,22 +12,26 @@ type createData struct {
 
 templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, data createData) {
 	<!DOCTYPE html>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tiny-markdown-editor@0.1.5/dist/tiny-mde.min.css" />
 
 	@layouts.Main("create", "Create a Post", site, owner) {
-		<h1>Create New Post</h1>
+		<h1>
+			<a href="/" class="back-link">
+				@components.Icon("chevron_left", components.InlineIcon)
+			</a>
+			Create New Post
+		</h1>
 		<form id="create-post-form" method="post" action="">
 			<formset>
 				<div class="label-input-set">
 					<label for="images">
-						@components.Icon("image", components.InlineIcon)
+						@components.Icon("image", 0)
 					</label>
 					<input type="file" id="images" name="images" multiple accept="image/*" />
 				</div>
 
 				<div class="label-input-set">
 					<label for="tier">
-						@components.Icon("attach_money", components.InlineIcon)
+						@components.Icon("attach_money", 0)
 					</label>
 					<select id="tier" name="price">
 						<option value="0">Free</option>
@@ -43,22 +48,22 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 				<div class="radio-group">
 					<input type="radio" id="visibility-none" name="visibility" value="" checked />
 					<label for="visibility-none">
-						@components.Icon("visibility_off", components.InlineIcon)
+						@components.Icon("visibility_off", 0)
 					</label>
 
 					<input type="radio" id="visibility-sponsor" name="visibility" value="sponsor" />
 					<label for="visibility-sponsor">
-						@components.Icon("attach_money", components.InlineIcon)
+						@components.Icon("attach_money", 0)
 					</label>
 
 					<input type="radio" id="visibility-private" name="visibility" value="private" />
 					<label for="visibility-private">
-						@components.Icon("lock", components.InlineIcon)
+						@components.Icon("lock", 0)
 					</label>
 
 					<input type="radio" id="visibility-public" name="visibility" value="public" />
 					<label for="visibility-public">
-						@components.Icon("public", components.InlineIcon)
+						@components.Icon("public", 0)
 					</label>
 				</div>
 
@@ -69,7 +74,7 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 						disabled?={ !site.AllowComments }
 					/>
 					<label for="comments">
-						@components.Icon("comment", components.InlineIcon)
+						@components.Icon("comment", 0)
 					</label>
 				</div>
 
@@ -80,21 +85,28 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 						disabled?={ !site.AllowReactions }
 					/>
 					<label for="reactions">
-						@components.Icon("add_reaction", components.InlineIcon)
+						@components.Icon("add_reaction", 0)
 					</label>
 				</div>
 			</formset>
 
 			<formset class="content-editor">
-				<textarea id="editor" name="content"></textarea>
+				<textarea id="editor" name="content">
+					{templutil.Literal(`
+						# Hello World
+
+						This is a test post. The title will be the first h1, if there is one.
+						You can also drag and drop images into the editor to upload them!
+					`)}
+				</textarea>
 			</formset>
 
 			<button type="submit">
-				@components.Icon("add", components.InlineIcon)
+				@components.Icon("add", 0)
 				Create
 			</button>
 		</form>
+
+		<meta name="swup-script" content="/create/create.js" />
 	}
-	<script type="module" src="/create/create.js">
-	</script>
 }

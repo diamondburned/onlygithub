@@ -9,8 +9,11 @@ type MainOpts struct {
 
 templ Main(id, title string, site *onlygithub.SiteConfig, owner *onlygithub.User) {
 	@components.Head(components.HeadOpts{Title: title, Owner: owner})
+	<script src="/static/swup.js" type="module" async defer ></script>
 
-	<body class="main" id={ id }>
-		{ children... }
+	<body class="main">
+		<main id={ id }>
+			{ children... }
+		</main>
 	</body>
 }

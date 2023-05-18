@@ -54,10 +54,7 @@
     }
 
     button[type="submit"] {
-      height: var(--input-height);
-      border-radius: var(--radius);
       background-color: var(--primary);
-      color: var(--background);
     }
 
     button[type="submit"],
@@ -84,7 +81,13 @@
       }
 
       textarea {
+        background-color: var(--background);
+        color: var(--foreground);
         font-family: monospace;
+        padding: 0;
+        outline: none;
+        border: none;
+        resize: none;
       }
 
       .TinyMDE {

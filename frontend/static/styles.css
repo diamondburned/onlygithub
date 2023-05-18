@@ -18,7 +18,7 @@
   --dull: #aaa;
   --border: 1px solid #aaa;
   --shadow: 0 0 0.2em rgba(170, 170, 170, 0.2);
-  --overlay: rgba(17, 17, 17, 0.2);
+  --overlay: rgba(17, 17, 17, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,7 +32,7 @@
     --dull: #aaa;
     --border: 1px solid #aaa;
     --shadow: 0 0 0.2em rgba(170, 170, 170, 0.2);
-    --overlay: rgba(255, 255, 255, 0.2);
+    --overlay: rgba(255, 255, 255, 0.15);
   }
 }
 html,
@@ -63,16 +63,16 @@ hr {
 .material-icons {
   cursor: default;
   user-select: none;
-  font-size: 1.35em;
+  font-size: 1.65em;
+  margin: 0 -0.1em;
+  vertical-align: bottom;
+  display: inline-flex;
 }
 .material-icons.large {
   font-size: 2.25em;
 }
 .material-icons.inline {
-  font-size: 1.5em;
-  margin: 0 -0.1em;
-  vertical-align: bottom;
-  display: inline-flex;
+  font-size: 1.35em;
 }
 
 button:hover, button:hover *,
@@ -110,6 +110,32 @@ button.outline {
   background-color: transparent;
   border: 1px solid var(--primary);
   color: var(--primary);
+}
+
+a.back-link {
+  --color: var(--dull);
+  color: var(--color);
+  transition: all 75ms ease-in-out;
+  border-right: 1px solid var(--color);
+  margin-right: 0.25em;
+  line-height: normal;
+}
+a.back-link:hover {
+  --color: var(--primary);
+}
+
+body.main > main {
+  transition: opacity 100ms linear;
+  opacity: 1;
+}
+@media (prefers-reduced-motion) {
+  body.main > main {
+    transition-duration: 0ms;
+  }
+}
+
+html.is-animating body.main > main {
+  opacity: 0;
 }
 
 #error {
@@ -280,10 +306,7 @@ button.outline {
   justify-content: flex-end;
 }
 #create form button[type=submit] {
-  height: var(--input-height);
-  border-radius: var(--radius);
   background-color: var(--primary);
-  color: var(--background);
 }
 #create form button[type=submit],
 #create form formset:not(.content-editor) {
@@ -308,7 +331,13 @@ button.outline {
   height: 100%;
 }
 #create form .content-editor textarea {
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: monospace;
+  padding: 0;
+  outline: none;
+  border: none;
+  resize: none;
 }
 #create form .content-editor .TinyMDE {
   padding: 0;

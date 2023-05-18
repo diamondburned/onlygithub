@@ -28,7 +28,7 @@ $light-error: $red;
 $light-dull: $gray;
 $light-border: 1px solid $light-dull;
 $light-shadow: 0 0 0.2em rgba($light-dull, $transparency);
-$light-overlay: rgba($light-foreground, $transparency);
+$light-overlay: rgba($light-foreground, 0.15);
 
 $dark-foreground: $white;
 $dark-background: $black;
@@ -40,7 +40,7 @@ $dark-error: darken($red, 20%);
 $dark-dull: $gray;
 $dark-border: 1px solid $dark-dull;
 $dark-shadow: 0 0 0.2em rgba($dark-dull, $transparency);
-$dark-overlay: rgba($dark-foreground, $transparency);
+$dark-overlay: rgba($dark-foreground, 0.15);
 
 :root {
   --foreground: #{$light-foreground};

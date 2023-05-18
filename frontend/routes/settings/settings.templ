@@ -26,7 +26,12 @@ templ checkbox(id, title, desc string, checked bool) {
 templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, data settingsData) {
 	<!DOCTYPE html>
 	@layouts.Main("settings", "Settings", site, owner) {
-		<h1>Settings</h1>
+		<h1>
+			<a href="/" class="back-link">
+				@components.Icon("chevron_left", components.InlineIcon)
+			</a>
+			Settings
+		</h1>
 
 		<section>
 			<h2>Preferences</h2>
@@ -37,7 +42,7 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 				</formset>
 	
 				<button type="submit">
-					@components.Icon("save", components.InlineIcon)
+					@components.Icon("save", 0)
 					Save
 				</button>
 			</form>
@@ -47,7 +52,7 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 			<h2>Account</h2>
 			<form id="logout" method="post" action="/logout">
 				<button type="submit" class="del">
-					@components.Icon("logout", components.InlineIcon)
+					@components.Icon("logout", 0)
 					Log out
 				</button>
 			</form>

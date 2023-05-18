@@ -38,7 +38,7 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 		</header>
 
 		<nav>
-			<div></div>
+			<div class="left"></div>
 			<ul>
 				<li>
 					@navButton(r, "/", "Home")
@@ -50,21 +50,25 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 					@navButton(r, "/membership", "Membership")
 				</li>
 			</ul>
-			<div class="actions">
-				if opts.Me != nil && opts.Me.ID == owner.ID {
-					<a href="/create" role="button">
-						@components.Icon("add", components.InlineIcon)
-					</a>
-				}
-				if opts.Me != nil {
-					<a href="/settings" role="button" title="Settings">
-						@components.Icon("settings", components.InlineIcon)
-					</a>
-				} else {
-					<a href="/login" role="button">
-						@components.Icon("login", components.InlineIcon)
-					</a>
-				}
+			<div class="right">
+				<div class="padding"></div>
+				<div class="actions">
+					if opts.Me != nil && opts.Me.ID == owner.ID {
+						<a href="/create" role="button">
+							@components.Icon("create", components.InlineIcon)
+						</a>
+					}
+					if opts.Me != nil {
+						<a href="/settings" role="button" title="Settings">
+							@components.Icon("settings", components.InlineIcon)
+						</a>
+					} else {
+						<a href="/login" role="button">
+							@components.Icon("login", components.InlineIcon)
+						</a>
+					}
+				</div>
+				<div class="padding"></div>
 			</div>
 		</nav>
 

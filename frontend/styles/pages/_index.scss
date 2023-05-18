@@ -1,10 +1,13 @@
 #index {
+  --separator-color: var(--overlay);
+
   header {
     .user-banner {
       aspect-ratio: 20/9;
       width: 100%;
       height: auto;
-      max-height: 65vh;
+      min-height: 25vh;
+      max-height: 55vh;
 
       background-color: #4158d0;
       background-image: linear-gradient(
@@ -41,17 +44,18 @@
       }
     }
 
+    .site-description {
+      margin-top: 0;
+    }
+
     p:empty {
       display: none;
     }
   }
 
   nav {
-    border-bottom: var(--border);
-
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
 
     ul {
       list-style: none;
@@ -66,49 +70,65 @@
       }
     }
 
+    .left {
+      border-bottom: 2px solid var(--separator-color);
+    }
+
     a {
       text-decoration: none;
       text-align: center;
 
-      color: var(--foreground);
-      padding: 0.5em;
-      border-bottom: 2px solid transparent;
+      color: var(--dull);
+      padding: 0.75em 1em;
+      border-bottom: 2px solid var(--separator-color);
 
       &[data-active] {
-        color: var(--primary);
-        font-weight: bold;
-        border-bottom: 2px solid var(--primary);
+        color: var(--foreground);
+        font-weight: bolder;
+        border-bottom: 2px solid var(--foreground);
       }
 
       &:hover {
+        color: var(--primary-hover);
         border-color: var(--primary-hover);
       }
 
       transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out;
     }
 
-    .actions {
-      margin-left: auto;
-      margin-right: 0.5em;
+    .right {
       display: flex;
+      flex-direction: row;
 
-      opacity: 0.5;
-      transition: opacity 0.15s ease-in-out;
+      .padding {
+        border-bottom: 2px solid var(--separator-color);
 
-      &:hover {
-        opacity: 1;
+        &:first-child {
+          flex: 1;
+        }
+
+        &:last-child {
+          padding-right: 0.25em;
+        }
+      }
+
+      .actions {
+        display: flex;
+        height: 100%;
       }
 
       a {
-        color: var(--foreground);
         display: flex;
         align-items: center;
         justify-content: center;
-
+        color: var(--dull);
         padding: 0.35em 0.5em;
+        transition: all 0.15s ease-in-out;
 
         &:hover {
-          border-color: var(--dull);
+          color: var(--primary-hover);
+          border-color: var(--primary-hover);
+          opacity: 1;
         }
       }
     }

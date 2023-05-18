@@ -18,7 +18,7 @@ const (
 )
 
 func iconClasses(flags IconFlags) string {
-	classes := "material-icons"
+	classes := "material-icons icon"
 	if flags&InlineIcon != 0 {
 		classes += " inline"
 	}

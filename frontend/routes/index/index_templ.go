@@ -288,7 +288,16 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				return err
 			}
 			// Element (standard)
-			_, err = templBuffer.WriteString("<div>")
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"left\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
@@ -353,6 +362,38 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				return err
 			}
 			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"right\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"padding\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
 			_, err = templBuffer.WriteString(" class=\"actions\"")
 			if err != nil {
 				return err
@@ -382,7 +423,7 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 					return err
 				}
 				// TemplElement
-				err = components.Icon("add", components.InlineIcon).Render(ctx, templBuffer)
+				err = components.Icon("create", components.InlineIcon).Render(ctx, templBuffer)
 				if err != nil {
 					return err
 				}
@@ -452,6 +493,28 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				if err != nil {
 					return err
 				}
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"padding\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
 			}
 			_, err = templBuffer.WriteString("</div>")
 			if err != nil {

@@ -13,6 +13,12 @@ func GET(w http.ResponseWriter, r *http.Request) {
 
 	var opts indexOpts
 
+	if site.AvatarAsset != nil {
+		opts.OwnerAvatarURL = "/images/" + site.AvatarAsset.String()
+	} else {
+		opts.OwnerAvatarURL = owner.AvatarURL
+	}
+
 	session := frontend.SessionFromRequest(r)
 	if session != nil {
 		opts.Me = session.Me

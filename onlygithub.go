@@ -27,6 +27,9 @@ type GitHubID string
 // ID is an ID for our resource.
 type ID = xid.ID
 
+// NullID is an empty ID.
+var NullID = xid.ID{}
+
 // GenerateID generates a new ID.
 func GenerateID() ID {
 	return xid.New()
@@ -286,9 +289,12 @@ type Reaction struct {
 // SiteConfig describes the configuration of the entire site. There's only one
 // site-wide configuration.
 type SiteConfig struct {
+	// AvatarAsset is the asset ID of the avatar image that will be displayed on
+	// the home page.
+	AvatarAsset *ID `json:"avatarAsset,omitempty"`
 	// BannerAsset is the asset ID of the banner image that will be displayed on
 	// the home page.
-	BannerAsset *ID `json:"bannerURL,omitempty"`
+	BannerAsset *ID `json:"bannerURL,omitempty"` // URL for backwards compatibility
 	// Description is the description of the site.
 	Description template.HTML `json:"bio,omitempty"`
 	// About is the about section of the site.

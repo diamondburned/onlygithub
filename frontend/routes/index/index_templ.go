@@ -18,6 +18,7 @@ import "net/http"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
+	OwnerAvatarURL string
 }
 
 func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, opts indexOpts) templ.Component {
@@ -133,7 +134,7 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString(templ.EscapeString(owner.AvatarURL))
+			_, err = templBuffer.WriteString(templ.EscapeString(opts.OwnerAvatarURL))
 			if err != nil {
 				return err
 			}

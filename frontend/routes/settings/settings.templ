@@ -75,6 +75,14 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 
 				<formset>
 					@input(
+						"avatar",
+						"Avatar",
+						"Override the GitHub user avatar with a custom one", "multiline",
+					) {
+						<input type="file" name="avatar" id="avatar" accept="image/*" />
+					}
+
+					@input(
 						"banner",
 						"Banner",
 						"Upload a banner for your site", "multiline",

@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"context"
 	"html/template"
 	"mime/multipart"
 	"net/http"
@@ -39,11 +40,12 @@ func New(s Services) http.Handler {
 }
 
 func (h handler) get(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	site := frontend.SiteFromRequest(r)
 	owner := frontend.OwnerFromRequest(r)
 	session := frontend.SessionFromRequest(r)
 
-	cfg, err := h.Config.UserConfig(r.Context(), session.Me.ID)
+	cfg, err := h.Config.UserConfig(ctx, session.Me.ID)
 	if err != nil {
 		layouts.RenderError(w, r, err)
 		return
@@ -55,7 +57,7 @@ func (h handler) get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if session.Me.IsOwner {
-		siteCfg, err := h.Config.SiteConfig(r.Context())
+		siteCfg, err := h.Config.SiteConfig(ctx)
 		if err != nil {
 			layouts.RenderError(w, r, err)
 			return
@@ -64,7 +66,7 @@ func (h handler) get(w http.ResponseWriter, r *http.Request) {
 		data.SiteConfig = siteCfg
 	}
 
-	settings(r, site, owner, data).Render(r.Context(), w)
+	settings(r, site, owner, data).Render(ctx, w)
 }
 
 func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +86,7 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 		AllowReactions     bool                  `form:"allow-reactions"`
 		HomepageVisibility onlygithub.Visibility `form:"homepage-visibility"`
 		Banner             *multipart.FileHeader `form:"-"`
+		Avatar             *multipart.FileHeader `form:"-"`
 	}
 
 	if err := hrt.URLDecoder.Decode(r, &form); err != nil {
@@ -93,6 +96,10 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 
 	if values := r.MultipartForm.File["banner"]; len(values) > 0 {
 		form.Banner = values[0]
+	}
+
+	if values := r.MultipartForm.File["avatar"]; len(values) > 0 {
+		form.Avatar = values[0]
 	}
 
 	site := frontend.SiteFromRequest(r)
@@ -107,36 +114,22 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 	site.AllowReactions = form.AllowReactions
 	site.HomepageVisibility = form.HomepageVisibility
 
+	var err error
+
+	if form.Avatar != nil {
+		site.AvatarAsset, err = h.replaceAsset(r.Context(), site.AvatarAsset, site.HomepageVisibility, form.Avatar)
+		if err != nil {
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to replace avatar"))
+			return
+		}
+	}
+
 	if form.Banner != nil {
-		// Delete the old banner if it exists.
-		if site.BannerAsset != nil {
-			if err := h.Images.DeleteImage(r.Context(), *site.BannerAsset); err != nil {
-				log := hclog.FromContext(r.Context())
-				log.Warn("failed to delete old banner", "err", err)
-			}
-		}
-
-		// For banner, we have to upload it first.
-		f, err := form.Banner.Open()
+		site.BannerAsset, err = h.replaceAsset(r.Context(), site.BannerAsset, site.HomepageVisibility, form.Banner)
 		if err != nil {
-			layouts.RenderError(w, r, errors.Wrap(err, "failed to open banner form file"))
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to replace banner"))
 			return
 		}
-		defer f.Close()
-
-		req := onlygithub.UploadImageRequest{
-			Filename:    form.Banner.Filename,
-			Visibility:  site.HomepageVisibility, // same as
-			MinimumCost: 0,                       // public so always 0
-		}
-
-		a, err := h.Images.UploadImage(r.Context(), req, f)
-		if err != nil {
-			layouts.RenderError(w, r, errors.Wrap(err, "failed to upload banner"))
-			return
-		}
-
-		site.BannerAsset = &a.ID
 	}
 
 	if err := h.Config.SetSiteConfig(r.Context(), site); err != nil {
@@ -145,4 +138,34 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/settings", http.StatusSeeOther)
+}
+
+func (h handler) replaceAsset(ctx context.Context, oldAssetID *onlygithub.ID, visibility onlygithub.Visibility, header *multipart.FileHeader) (*onlygithub.ID, error) {
+	// Delete the old banner if it exists.
+	if oldAssetID != nil {
+		if err := h.Images.DeleteImage(ctx, *oldAssetID); err != nil {
+			log := hclog.FromContext(ctx)
+			log.Warn("failed to delete old asset", "err", err)
+		}
+	}
+
+	f, err := header.Open()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to open asset form file")
+	}
+	defer f.Close()
+
+	req := onlygithub.UploadImageRequest{
+		Filename:    header.Filename,
+		Visibility:  visibility, // same as
+		MinimumCost: 0,          // public so always 0
+	}
+
+	a, err := h.Images.UploadImage(ctx, req, f)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to upload asset")
+	}
+
+	id := a.ID
+	return &id, nil
 }

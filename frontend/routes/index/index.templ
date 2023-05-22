@@ -8,6 +8,7 @@ import "net/http"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
+	OwnerAvatarURL string
 }
 
 templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User, opts indexOpts) {
@@ -21,7 +22,7 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			</div>
 
 			<div class="user-info">
-				<img class="user-avatar" src={ owner.AvatarURL } alt="avatar"/>
+				<img class="user-avatar" src={ opts.OwnerAvatarURL } alt="avatar"/>
 				<h1 class="user-name">
 					if owner.RealName != "" {
 						<span class="real-name">{ owner.RealName }</span>

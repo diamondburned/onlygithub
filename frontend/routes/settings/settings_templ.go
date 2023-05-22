@@ -560,6 +560,52 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
+					_, err = templBuffer.WriteString(" name=\"avatar\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" id=\"avatar\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(" accept=\"image/*\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(">")
+					if err != nil {
+						return err
+					}
+					if !templIsBuffer {
+						_, err = io.Copy(w, templBuffer)
+					}
+					return err
+				})
+				err = input(
+						"avatar",
+						"Avatar",
+						"Override the GitHub user avatar with a custom one", "multiline",
+					).Render(templ.WithChildren(ctx, var_12), templBuffer)
+				if err != nil {
+					return err
+				}
+				// TemplElement
+				var_13 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+					templBuffer, templIsBuffer := w.(*bytes.Buffer)
+					if !templIsBuffer {
+						templBuffer = templ.GetBuffer()
+						defer templ.ReleaseBuffer(templBuffer)
+					}
+					// Element (void)
+					_, err = templBuffer.WriteString("<input")
+					if err != nil {
+						return err
+					}
+					// Element Attributes
+					_, err = templBuffer.WriteString(" type=\"file\"")
+					if err != nil {
+						return err
+					}
 					_, err = templBuffer.WriteString(" name=\"banner\"")
 					if err != nil {
 						return err
@@ -585,12 +631,12 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						"banner",
 						"Banner",
 						"Upload a banner for your site", "multiline",
-					).Render(templ.WithChildren(ctx, var_12), templBuffer)
+					).Render(templ.WithChildren(ctx, var_13), templBuffer)
 				if err != nil {
 					return err
 				}
 				// TemplElement
-				var_13 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+				var_14 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 					templBuffer, templIsBuffer := w.(*bytes.Buffer)
 					if !templIsBuffer {
 						templBuffer = templ.GetBuffer()
@@ -631,8 +677,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// StringExpression
-					var var_14 string = string(data.SiteConfig.Description)
-					_, err = templBuffer.WriteString(templ.EscapeString(var_14))
+					var var_15 string = string(data.SiteConfig.Description)
+					_, err = templBuffer.WriteString(templ.EscapeString(var_15))
 					if err != nil {
 						return err
 					}
@@ -649,12 +695,12 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						"description",
 						"Description",
 						"A short description of your site in HTML", "multiline",
-					).Render(templ.WithChildren(ctx, var_13), templBuffer)
+					).Render(templ.WithChildren(ctx, var_14), templBuffer)
 				if err != nil {
 					return err
 				}
 				// TemplElement
-				var_15 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+				var_16 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 					templBuffer, templIsBuffer := w.(*bytes.Buffer)
 					if !templIsBuffer {
 						templBuffer = templ.GetBuffer()
@@ -695,8 +741,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// StringExpression
-					var var_16 string = string(data.SiteConfig.About)
-					_, err = templBuffer.WriteString(templ.EscapeString(var_16))
+					var var_17 string = string(data.SiteConfig.About)
+					_, err = templBuffer.WriteString(templ.EscapeString(var_17))
 					if err != nil {
 						return err
 					}
@@ -713,7 +759,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						"about",
 						"About",
 						"Contents of the About page in HTML", "multiline",
-					).Render(templ.WithChildren(ctx, var_15), templBuffer)
+					).Render(templ.WithChildren(ctx, var_16), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -748,7 +794,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// TemplElement
-				var_17 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+				var_18 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 					templBuffer, templIsBuffer := w.(*bytes.Buffer)
 					if !templIsBuffer {
 						templBuffer = templ.GetBuffer()
@@ -805,8 +851,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Text
-					var_18 := `Nobody`
-					_, err = templBuffer.WriteString(var_18)
+					var_19 := `Nobody`
+					_, err = templBuffer.WriteString(var_19)
 					if err != nil {
 						return err
 					}
@@ -847,8 +893,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Text
-					var_19 := `Sponsors only`
-					_, err = templBuffer.WriteString(var_19)
+					var_20 := `Sponsors only`
+					_, err = templBuffer.WriteString(var_20)
 					if err != nil {
 						return err
 					}
@@ -889,8 +935,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Text
-					var_20 := `Logged-in only`
-					_, err = templBuffer.WriteString(var_20)
+					var_21 := `Logged-in only`
+					_, err = templBuffer.WriteString(var_21)
 					if err != nil {
 						return err
 					}
@@ -931,8 +977,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// Text
-					var_21 := `Everyone`
-					_, err = templBuffer.WriteString(var_21)
+					var_22 := `Everyone`
+					_, err = templBuffer.WriteString(var_22)
 					if err != nil {
 						return err
 					}
@@ -953,7 +999,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						"homepage-visibility",
 						"Homepage Visibility",
 						"How accessible the homepage and its posts are",
-					).Render(templ.WithChildren(ctx, var_17), templBuffer)
+					).Render(templ.WithChildren(ctx, var_18), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -968,8 +1014,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_22 := `Socials`
-				_, err = templBuffer.WriteString(var_22)
+				var_23 := `Socials`
+				_, err = templBuffer.WriteString(var_23)
 				if err != nil {
 					return err
 				}
@@ -1006,8 +1052,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_23 := `Twitter`
-				_, err = templBuffer.WriteString(var_23)
+				var_24 := `Twitter`
+				_, err = templBuffer.WriteString(var_24)
 				if err != nil {
 					return err
 				}
@@ -1068,8 +1114,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_24 := `YouTube`
-				_, err = templBuffer.WriteString(var_24)
+				var_25 := `YouTube`
+				_, err = templBuffer.WriteString(var_25)
 				if err != nil {
 					return err
 				}
@@ -1130,8 +1176,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_25 := `GitHub`
-				_, err = templBuffer.WriteString(var_25)
+				var_26 := `GitHub`
+				_, err = templBuffer.WriteString(var_26)
 				if err != nil {
 					return err
 				}
@@ -1192,8 +1238,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_26 := `Twitch`
-				_, err = templBuffer.WriteString(var_26)
+				var_27 := `Twitch`
+				_, err = templBuffer.WriteString(var_27)
 				if err != nil {
 					return err
 				}
@@ -1254,8 +1300,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_27 := `Discord`
-				_, err = templBuffer.WriteString(var_27)
+				var_28 := `Discord`
+				_, err = templBuffer.WriteString(var_28)
 				if err != nil {
 					return err
 				}
@@ -1316,8 +1362,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_28 := `Instagram`
-				_, err = templBuffer.WriteString(var_28)
+				var_29 := `Instagram`
+				_, err = templBuffer.WriteString(var_29)
 				if err != nil {
 					return err
 				}
@@ -1378,8 +1424,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_29 := `Matrix`
-				_, err = templBuffer.WriteString(var_29)
+				var_30 := `Matrix`
+				_, err = templBuffer.WriteString(var_30)
 				if err != nil {
 					return err
 				}
@@ -1440,8 +1486,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_30 := `Reddit`
-				_, err = templBuffer.WriteString(var_30)
+				var_31 := `Reddit`
+				_, err = templBuffer.WriteString(var_31)
 				if err != nil {
 					return err
 				}
@@ -1502,8 +1548,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_31 := `Facebook`
-				_, err = templBuffer.WriteString(var_31)
+				var_32 := `Facebook`
+				_, err = templBuffer.WriteString(var_32)
 				if err != nil {
 					return err
 				}
@@ -1564,8 +1610,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// Text
-				var_32 := `Mastodon`
-				_, err = templBuffer.WriteString(var_32)
+				var_33 := `Mastodon`
+				_, err = templBuffer.WriteString(var_33)
 				if err != nil {
 					return err
 				}
@@ -1620,7 +1666,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					return err
 				}
 				// TemplElement
-				var_33 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+				var_34 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 					templBuffer, templIsBuffer := w.(*bytes.Buffer)
 					if !templIsBuffer {
 						templBuffer = templ.GetBuffer()
@@ -1665,8 +1711,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						return err
 					}
 					// StringExpression
-					var var_34 string = data.SiteConfig.CustomCSS
-					_, err = templBuffer.WriteString(templ.EscapeString(var_34))
+					var var_35 string = data.SiteConfig.CustomCSS
+					_, err = templBuffer.WriteString(templ.EscapeString(var_35))
 					if err != nil {
 						return err
 					}
@@ -1683,7 +1729,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 						"custom-css",
 						"Custom CSS",
 						"Custom CSS to inject into the page", "multiline",
-					).Render(templ.WithChildren(ctx, var_33), templBuffer)
+					).Render(templ.WithChildren(ctx, var_34), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -1729,8 +1775,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				return err
 			}
 			// Text
-			var_35 := `Account`
-			_, err = templBuffer.WriteString(var_35)
+			var_36 := `Account`
+			_, err = templBuffer.WriteString(var_36)
 			if err != nil {
 				return err
 			}
@@ -1767,8 +1813,8 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				return err
 			}
 			// Text
-			var_36 := `Log out`
-			_, err = templBuffer.WriteString(var_36)
+			var_37 := `Log out`
+			_, err = templBuffer.WriteString(var_37)
 			if err != nil {
 				return err
 			}

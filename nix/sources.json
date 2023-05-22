@@ -78,10 +78,10 @@
         "homepage": "",
         "owner": "a-h",
         "repo": "templ",
-        "rev": "e1ca5e24f90e45320d195e3f17ef3f6b06755519",
-        "sha256": "12bgqsgndqma2bka5w8dxahhrcnr8ddc1h34axj9ysfh6lbihd0l",
+        "rev": "acea959ba5020adc62f477c0fc8610b17c7aa253",
+        "sha256": "0byicjzldfc8zvvwa1b5wdn1h3ypv38whna222n42p9ckahls3g6",
         "type": "tarball",
-        "url": "https://github.com/a-h/templ/archive/e1ca5e24f90e45320d195e3f17ef3f6b06755519.tar.gz",
+        "url": "https://github.com/a-h/templ/archive/acea959ba5020adc62f477c0fc8610b17c7aa253.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

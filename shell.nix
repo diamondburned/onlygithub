@@ -12,10 +12,10 @@ let
 
 	useForVersion = src: version: hash:
 		if (src.version == version) then hash else
-			throw "${hash}: no value for newer version ${version}";
+			builtins.trace "${hash}: no value for newer version ${src.version}" lib.fakeSha256;
 	useForRev = src: rev: hash:
 		if (lib.hasPrefix rev src.rev) then hash else
-			throw "${hash}: no value for newer revision ${rev}";
+			builtins.trace "${hash}: no value for newer revision ${src.rev}" lib.fakeSha256;
 	shortRev = rev: builtins.substring 0 7 rev;
 in
 
@@ -64,8 +64,8 @@ let
 		name = "templ";
 		src = src.templ;
 		version = shortRev src.templ.rev;
-		vendorSha256 = useForRev src.templ "e1ca5e2"
-			"07l03bdmfq67qdzqalg6q3y7mvb99byryvkq3ylq753djpa3nkhq";
+		vendorSha256 = useForRev src.templ "acea959"
+			"sha256-GE471JVtlIOpH3hun/1Kae16/MDmUYV/w8dgV9sagB4=";
 		subPackages = [ "cmd/templ" ];
 	};
 

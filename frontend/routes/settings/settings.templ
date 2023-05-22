@@ -49,18 +49,18 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 			</hgroup>
 
 			<formset class="toggles">
-				{!checkbox(
+				@checkbox(
 					"show-comments",
 					"Show comments",
 					"Show or hide comments on the homepage",
 					data.MeConfig.ShowComments,
-				)}
-				{!checkbox(
+				)
+				@checkbox(
 					"anonymous",
 					"Anonymous",
 					"Hide your username from other users",
 					data.MeConfig.Anonymous,
-				)}
+				)
 			</formset>
 		</form>
 
@@ -74,11 +74,19 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 				</hgroup>
 
 				<formset>
-					@input("banner", "Banner", "Upload a banner for your site", "multiline") {
+					@input(
+						"banner",
+						"Banner",
+						"Upload a banner for your site", "multiline",
+					) {
 						<input type="file" name="banner" id="banner" accept="image/*" />
 					}
 
-					@input("description", "Description", "A short description of your site in HTML", "multiline") {
+					@input(
+						"description",
+						"Description",
+						"A short description of your site in HTML", "multiline",
+					) {
 						<textarea
 							is="highlighted-code" class="code grow" language="html" rows="5"
 							name="description" id="description"
@@ -87,7 +95,11 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						</textarea>
 					}
 
-					@input("about", "About", "Contents of the About page in HTML", "multiline") {
+					@input(
+						"about",
+						"About",
+						"Contents of the About page in HTML", "multiline",
+					) {
 						<textarea
 							is="highlighted-code" class="code grow" language="html" rows="5"
 							name="about" id="about"
@@ -96,26 +108,30 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						</textarea>
 					}
 
-					{!checkbox(
+					@checkbox(
 						"allow-dms",
 						"Allow Direct Messages",
 						"Whether or not users can send DMs to you",
 						data.SiteConfig.AllowDMs,
-					)}
-					{!checkbox(
+					)
+					@checkbox(
 						"allow-comments",
 						"Allow Comments",
 						"Whether or not users can comment on posts",
 						data.SiteConfig.AllowComments,
-					)}
-					{!checkbox(
+					)
+					@checkbox(
 						"allow-reactions",
 						"Allow Reactions",
 						"Whether or not users can react to posts",
 						data.SiteConfig.AllowReactions,
-					)}
+					)
 
-					@input("homepage-visibility", "Homepage Visibility", "How accessible the homepage and its posts are") {
+					@input(
+						"homepage-visibility",
+						"Homepage Visibility",
+						"How accessible the homepage and its posts are",
+					) {
 						<select name="homepage-visibility" id="homepage-visibility">
 							<option
 								value={ string(onlygithub.NotVisible) }
@@ -182,7 +198,11 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						</div>
 					</formset>
 
-					@input("custom-css", "Custom CSS", "Custom CSS to inject into the page", "multiline") {
+					@input(
+						"custom-css",
+						"Custom CSS",
+						"Custom CSS to inject into the page", "multiline",
+					) {
 						<textarea
 							is="highlighted-code" class="code grow" language="css" rows="5" spellcheck="false"
 							name="custom-css" id="custom-css"

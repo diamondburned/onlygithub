@@ -426,7 +426,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 			if err != nil {
 				return err
 			}
-			// CallTemplate
+			// TemplElement
 			err = checkbox(
 					"show-comments",
 					"Show comments",
@@ -436,7 +436,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 			if err != nil {
 				return err
 			}
-			// CallTemplate
+			// TemplElement
 			err = checkbox(
 					"anonymous",
 					"Anonymous",
@@ -581,7 +581,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("banner", "Banner", "Upload a banner for your site", "multiline").Render(templ.WithChildren(ctx, var_12), templBuffer)
+				err = input(
+						"banner",
+						"Banner",
+						"Upload a banner for your site", "multiline",
+					).Render(templ.WithChildren(ctx, var_12), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -641,7 +645,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("description", "Description", "A short description of your site in HTML", "multiline").Render(templ.WithChildren(ctx, var_13), templBuffer)
+				err = input(
+						"description",
+						"Description",
+						"A short description of your site in HTML", "multiline",
+					).Render(templ.WithChildren(ctx, var_13), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -701,11 +709,15 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("about", "About", "Contents of the About page in HTML", "multiline").Render(templ.WithChildren(ctx, var_15), templBuffer)
+				err = input(
+						"about",
+						"About",
+						"Contents of the About page in HTML", "multiline",
+					).Render(templ.WithChildren(ctx, var_15), templBuffer)
 				if err != nil {
 					return err
 				}
-				// CallTemplate
+				// TemplElement
 				err = checkbox(
 						"allow-dms",
 						"Allow Direct Messages",
@@ -715,7 +727,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				if err != nil {
 					return err
 				}
-				// CallTemplate
+				// TemplElement
 				err = checkbox(
 						"allow-comments",
 						"Allow Comments",
@@ -725,7 +737,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 				if err != nil {
 					return err
 				}
-				// CallTemplate
+				// TemplElement
 				err = checkbox(
 						"allow-reactions",
 						"Allow Reactions",
@@ -937,7 +949,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("homepage-visibility", "Homepage Visibility", "How accessible the homepage and its posts are").Render(templ.WithChildren(ctx, var_17), templBuffer)
+				err = input(
+						"homepage-visibility",
+						"Homepage Visibility",
+						"How accessible the homepage and its posts are",
+					).Render(templ.WithChildren(ctx, var_17), templBuffer)
 				if err != nil {
 					return err
 				}
@@ -1663,7 +1679,11 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					}
 					return err
 				})
-				err = input("custom-css", "Custom CSS", "Custom CSS to inject into the page", "multiline").Render(templ.WithChildren(ctx, var_33), templBuffer)
+				err = input(
+						"custom-css",
+						"Custom CSS",
+						"Custom CSS to inject into the page", "multiline",
+					).Render(templ.WithChildren(ctx, var_33), templBuffer)
 				if err != nil {
 					return err
 				}

@@ -15,9 +15,11 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
+import "time"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
+	Posts []onlygithub.Post
 	OwnerAvatarURL string
 }
 
@@ -543,7 +545,16 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				return err
 			}
 			// Element (standard)
-			_, err = templBuffer.WriteString("<section>")
+			_, err = templBuffer.WriteString("<section")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" id=\"posts\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
@@ -561,6 +572,349 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 			_, err = templBuffer.WriteString("</h2>")
 			if err != nil {
 				return err
+			}
+			// For
+			for _, post := range opts.Posts {
+				// Element (standard)
+				// Element CSS
+				var var_7 = []any{
+						"post",
+						templ.KV("concealed", post.IsConcealed),
+						templ.KV("has-images", len(post.Images) > 0),
+					}
+				err = templ.RenderCSSItems(ctx, templBuffer, var_7...)
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("<article")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" id=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString("post-" + post.ID.String()))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(" class=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString(templ.CSSClasses(var_7).String()))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// If
+				if post.IsConcealed {
+					// Element (standard)
+					_, err = templBuffer.WriteString("<div")
+					if err != nil {
+						return err
+					}
+					// Element Attributes
+					_, err = templBuffer.WriteString(" class=\"concealed-overlay\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(">")
+					if err != nil {
+						return err
+					}
+					// TemplElement
+					err = components.Icon("paid", components.LargeIcon).Render(ctx, templBuffer)
+					if err != nil {
+						return err
+					}
+					// Element (standard)
+					_, err = templBuffer.WriteString("<span>")
+					if err != nil {
+						return err
+					}
+					// StringExpression
+					var var_8 string = "Post is only available to " + visibilityMap[post.Visibility]
+					_, err = templBuffer.WriteString(templ.EscapeString(var_8))
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString("</span>")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString("</div>")
+					if err != nil {
+						return err
+					}
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<div")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"cover\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// For
+				for _, image := range post.Images {
+					// Element (void)
+					_, err = templBuffer.WriteString("<img")
+					if err != nil {
+						return err
+					}
+					// Element Attributes
+					if !image.ID.IsZero() {
+						// Element Attributes
+						_, err = templBuffer.WriteString(" src=")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString("\"")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString(templ.EscapeString("/images/" + image.ID.String()))
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString("\"")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString(" alt=\"post image\"")
+						if err != nil {
+							return err
+						}
+					} else {
+						// Element Attributes
+						_, err = templBuffer.WriteString(" src=")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString("\"")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString(templ.EscapeString(image.PreviewURL))
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString("\"")
+						if err != nil {
+							return err
+						}
+						_, err = templBuffer.WriteString(" alt=\"blurred post image\"")
+						if err != nil {
+							return err
+						}
+					}
+					_, err = templBuffer.WriteString(">")
+					if err != nil {
+						return err
+					}
+				}
+				_, err = templBuffer.WriteString("</div>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<div")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"body\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<div")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"author\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// Element (void)
+				_, err = templBuffer.WriteString("<img")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"avatar\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(" src=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString(opts.OwnerAvatarURL))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(" alt=\"avatar\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<div>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<span")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"username\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// StringExpression
+				var var_9 string = owner.Username
+				_, err = templBuffer.WriteString(templ.EscapeString(var_9))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</span>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<time")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"relative\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(" datetime=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString(post.ID.Time().Format(time.RFC3339)))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// StringExpression
+				var var_10 string = post.ID.Time().Format("January _2, 2006 at 03:04pm")
+				_, err = templBuffer.WriteString(templ.EscapeString(var_10))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</time>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</div>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</div>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<div")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"content markdown markdown-unsafe\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// StringExpression
+				var var_11 string = post.Markdown
+				_, err = templBuffer.WriteString(templ.EscapeString(var_11))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</div>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</div>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</article>")
+				if err != nil {
+					return err
+				}
 			}
 			_, err = templBuffer.WriteString("</section>")
 			if err != nil {
@@ -590,9 +944,9 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			defer templ.ReleaseBuffer(templBuffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_7 := templ.GetChildren(ctx)
-		if var_7 == nil {
-			var_7 = templ.NopComponent
+		var_12 := templ.GetChildren(ctx)
+		if var_12 == nil {
+			var_12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -609,8 +963,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 		if err != nil {
 			return err
 		}
-		var var_8 templ.SafeURL = dst
-		_, err = templBuffer.WriteString(templ.EscapeString(string(var_8)))
+		var var_13 templ.SafeURL = dst
+		_, err = templBuffer.WriteString(templ.EscapeString(string(var_13)))
 		if err != nil {
 			return err
 		}
@@ -629,8 +983,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			return err
 		}
 		// StringExpression
-		var var_9 string = name
-		_, err = templBuffer.WriteString(templ.EscapeString(var_9))
+		var var_14 string = name
+		_, err = templBuffer.WriteString(templ.EscapeString(var_14))
 		if err != nil {
 			return err
 		}

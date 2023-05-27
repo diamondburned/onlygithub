@@ -15,6 +15,7 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
+import "strconv"
 
 type createData struct {
 	Tiers []onlygithub.Tier
@@ -115,26 +116,16 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString(" enctype=\"multipart/form-data\"")
+			if err != nil {
+				return err
+			}
 			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<formset>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<div")
-			if err != nil {
-				return err
-			}
-			// Element Attributes
-			_, err = templBuffer.WriteString(" class=\"label-input-set\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
@@ -148,16 +139,16 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString(" class=\"label-input-set\"")
+			if err != nil {
+				return err
+			}
 			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
 			// TemplElement
 			err = components.Icon("image", 0).Render(ctx, templBuffer)
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("</label>")
 			if err != nil {
 				return err
 			}
@@ -191,21 +182,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString("</div>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<div")
-			if err != nil {
-				return err
-			}
-			// Element Attributes
-			_, err = templBuffer.WriteString(" class=\"label-input-set\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(">")
+			_, err = templBuffer.WriteString("</label>")
 			if err != nil {
 				return err
 			}
@@ -215,7 +192,11 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			// Element Attributes
-			_, err = templBuffer.WriteString(" for=\"tier\"")
+			_, err = templBuffer.WriteString(" for=\"minimum-cost\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" class=\"label-input-set\"")
 			if err != nil {
 				return err
 			}
@@ -228,21 +209,17 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString("</label>")
-			if err != nil {
-				return err
-			}
 			// Element (standard)
 			_, err = templBuffer.WriteString("<select")
 			if err != nil {
 				return err
 			}
 			// Element Attributes
-			_, err = templBuffer.WriteString(" id=\"tier\"")
+			_, err = templBuffer.WriteString(" id=\"minimum-cost\"")
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString(" name=\"price\"")
+			_, err = templBuffer.WriteString(" name=\"minimum-cost\"")
 			if err != nil {
 				return err
 			}
@@ -282,7 +259,19 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 					return err
 				}
 				// Element Attributes
-				_, err = templBuffer.WriteString(" value=\"{ tier.Price }\"")
+				_, err = templBuffer.WriteString(" value=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(templ.EscapeString(strconv.Itoa(int(tier.Price))))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
 				if err != nil {
 					return err
 				}
@@ -328,7 +317,7 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString("</div>")
+			_, err = templBuffer.WriteString("</label>")
 			if err != nil {
 				return err
 			}
@@ -595,6 +584,10 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString(" checked")
+			if err != nil {
+				return err
+			}
 			if !site.AllowComments {
 				_, err = templBuffer.WriteString(" disabled")
 				if err != nil {
@@ -665,6 +658,10 @@ func create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 				return err
 			}
 			_, err = templBuffer.WriteString(" value=\"1\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" checked")
 			if err != nil {
 				return err
 			}

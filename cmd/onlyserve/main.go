@@ -90,6 +90,7 @@ func serve() {
 		Images:      db,
 		Users:       db,
 		Tiers:       db,
+		Posts:       db,
 	})
 
 	log.Println("listening on", httpAddr)

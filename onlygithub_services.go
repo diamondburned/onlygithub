@@ -45,10 +45,12 @@ type PostService interface {
 	// Posts should be sorted latest-first, meaning higher IDs should be
 	// returned first.
 	//
-	// Visibility should act as a filter: if Public is specified, only public
-	// posts should be returned, but if Sponsor is specified, both public and
-	// sponsor-only posts should be returned.
-	Posts(ctx context.Context, visibility Visibility, before ID) ([]Post, error)
+	// If forUser is not nil, then only posts by that user should be returned,
+	// otherwise only posts that are visible to the public should be returned.
+	//
+	// If before is not empty, then only posts before the given ID should be
+	// returned.
+	Posts(ctx context.Context, forUser *User, before ID) ([]Post, error)
 	// CreatePost creates a post. The post should be created with the given
 	// visibility. The visibility should be validated.
 	CreatePost(ctx context.Context, req CreatePostRequest) (*Post, error)
@@ -79,6 +81,13 @@ type UploadImageRequest struct {
 	Visibility Visibility `json:"visibility"`
 	// MinimumCost is the minimum cost of the image.
 	MinimumCost Cents `json:"minimumCost"`
+	// PreviewURL is a tiny preview image of the post. It should be a
+	// data URI of a tiny JPEG image.
+	PreviewURL string `json:"previewURL"`
+	// Width is the width of the image.
+	Width int `json:"width"`
+	// Height is the height of the image.
+	Height int `json:"height"`
 }
 
 // CreatePostRequest is a request to create a post.

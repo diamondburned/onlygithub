@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"html/template"
+	"math/rand"
 	"regexp"
 	"sort"
 	"strconv"
@@ -29,6 +31,11 @@ type ID = xid.ID
 
 // NullID is an empty ID.
 var NullID = xid.ID{}
+
+// ParseID parses an ID from a string.
+func ParseID(str string) (ID, error) {
+	return xid.FromString(str)
+}
 
 // GenerateID generates a new ID.
 func GenerateID() ID {
@@ -247,14 +254,90 @@ type Post struct {
 	Asset
 	// Markdown is the Markdown content.
 	Markdown string `json:"markdown"`
-	// Assets is a list of assets within the content. It acts as a reference to
-	// the actual assets, preventing them to be garbage collected.
-	Assets []ImageAsset `json:"assets,omitempty"`
+	// Images is a list of images within the content. It acts as a reference
+	// to the actual images, preventing them to be garbage collected.
+	Images []PostImage `json:"assetIDs,omitempty"`
 	// AllowComments is true if comments are allowed on the content.
-	AllowComments bool `json:"allowComments,omitempty"`
+	AllowComments *bool `json:"allowComments,omitempty"`
 	// AllowReactions is true if reactions are allowed on the content.
 	// Reactions will be allowed for comments as well.
-	AllowReactions bool `json:"allowReactions,omitempty"`
+	AllowReactions *bool `json:"allowReactions,omitempty"`
+	// IsConcealed is true if the content is concealed.
+	IsConcealed bool `json:"isConcealed,omitempty"`
+}
+
+// ConcealPosts returns a copy of posts with all posts that are not visible to
+// the given user concealed.
+func ConcealPosts(posts []Post, user *User) []Post {
+	filtered := make([]Post, 0, len(posts))
+	for _, post := range posts {
+		if post.IsVisibleTo(user) {
+			filtered = append(filtered, post)
+		} else {
+			filtered = append(filtered, ConcealPost(post))
+		}
+	}
+	return filtered
+}
+
+// ConcealPost returns a copy of post with all assets concealed.
+func ConcealPost(post Post) Post {
+	oldPost := post
+
+	post.Markdown = mostEffectiveParagraphCensoringAlgorithm(post.Markdown)
+	post.IsConcealed = true
+
+	post.Images = make([]PostImage, 0, len(oldPost.Images))
+	for _, image := range oldPost.Images {
+		if image.PreviewURL != "" && image.Width > 0 && image.Height > 0 {
+			image.ID = NullID
+			post.Images = append(post.Images, image)
+		}
+	}
+
+	return post
+}
+
+var meows = []string{
+	"mew mew, mew mew mew",
+	"meow meow",
+	"mrooww, mwmwomorw!",
+	"nya~ nya~",
+	"meown~~",
+}
+
+func mostEffectiveParagraphCensoringAlgorithm(markdown string) string {
+	hasher := fnv.New64a()
+	hasher.Write([]byte(markdown))
+	rander := rand.New(rand.NewSource(int64(hasher.Sum64())))
+
+	lines := strings.Split(markdown, "\n")
+	var b strings.Builder
+
+	meow := func(minLength int) {
+		var written int
+		for written < minLength {
+			meown := meows[rander.Intn(len(meows))]
+			b.WriteString(meown)
+			b.WriteString(" ")
+			written += len(meown) + 1
+		}
+	}
+
+	for _, line := range lines {
+		meow(len(line) + rander.Intn(10))
+		b.WriteString("\n\n")
+	}
+
+	return b.String()
+}
+
+// PostImage is an image asset within a post.
+type PostImage struct {
+	ID         ID     `json:"id"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
+	PreviewURL string `json:"previewURL"` // preferably a data URI
 }
 
 // ImageAsset is an image asset. Image assets can be referenced by a special URL

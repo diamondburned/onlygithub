@@ -37,25 +37,51 @@ REPLACE INTO user_tiers (user_id, tier_id, price, is_one_time, is_custom_amount,
 -- name: DeleteUserTier :exec
 DELETE FROM user_tiers WHERE user_id = ?;
 
--- name: PostAsset :one
-SELECT * FROM assets WHERE id = ? AND type = 'post';
-
 -- name: ImageAsset :one
-SELECT filename, visibility, minimum_cost, last_updated FROM assets WHERE id = ? AND type = 'image';
+SELECT filename, visibility, minimum_cost, last_updated FROM assets WHERE id = ?;
 
 -- name: ImageData :one
-SELECT data FROM assets WHERE id = ? AND type = 'image';
+SELECT data FROM assets WHERE id = ?;
 
 -- name: DeleteImageAsset :exec
-DELETE FROM assets WHERE id = ? AND type = 'image';
+DELETE FROM assets WHERE id = ?;
 
 -- name: CreateImageAsset :one
-INSERT INTO assets (id, type, data, filename, visibility, minimum_cost, last_updated)
-	VALUES (?, 'image', ?, ?, ?, ?, datetime())
+INSERT INTO assets (id, data, filename, preview_url, width, height, visibility, minimum_cost, last_updated)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime())
 	RETURNING last_updated;
 
 -- name: SetAssetVisibility :exec
 UPDATE assets SET visibility = ? WHERE id = ?;
+
+-- name: Post :one
+SELECT * FROM posts WHERE id = ?;
+
+-- name: Posts :many
+SELECT * FROM posts ORDER BY id LIMIT 15;
+
+-- name: PostsBefore :many
+SELECT * FROM posts WHERE id < ? ORDER BY id LIMIT 15;
+
+-- name: CreatePost :one
+INSERT INTO posts (id, data, visibility, minimum_cost, last_updated)
+	VALUES (?, ?, ?, ?, datetime())
+	RETURNING last_updated;
+
+-- name: SetPostVisibility :exec
+UPDATE posts SET visibility = ? WHERE id = ?;
+
+-- name: BindAssetToPost :exec
+INSERT INTO asset_refs (post_id, asset_id) VALUES (?, ?);
+
+-- name: PinAssetRef :exec
+REPLACE INTO asset_refs (post_id, asset_id) VALUES (NULL, ?);
+
+-- name: PostImages :many
+SELECT assets.id, assets.preview_url, assets.width, assets.height
+	FROM asset_refs
+	INNER JOIN assets ON assets.id = asset_refs.asset_id
+	WHERE asset_refs.post_id = ?;
 
 -- -- name: UnusedImageAssetIDs :many
 -- SELECT assets.id

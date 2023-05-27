@@ -966,7 +966,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					if data.SiteConfig.HomepageVisibility == "hidden" {
+					if data.SiteConfig.HomepageVisibility == onlygithub.VisibleToPublic {
 						_, err = templBuffer.WriteString(" selected")
 						if err != nil {
 							return err

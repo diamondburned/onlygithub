@@ -164,7 +164,7 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 
 							<option
 								value={ string(onlygithub.VisibleToPublic) }
-								selected?={ data.SiteConfig.HomepageVisibility == "hidden" }
+								selected?={ data.SiteConfig.HomepageVisibility == onlygithub.VisibleToPublic }
 							>
 								Everyone
 							</option>

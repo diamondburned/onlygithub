@@ -21,7 +21,7 @@ $max-page-width: 850px;
 $light-foreground: $black;
 $light-background: $white;
 $light-primary: $blue;
-$light-primary-hover: darken($blue, 15%);
+$light-primary-hover: lighten($blue, 15%);
 $light-success: $green;
 $light-warning: $orange;
 $light-error: $red;
@@ -32,7 +32,7 @@ $light-overlay: rgba($light-foreground, 0.1);
 $light-overlay-hover: rgba($light-foreground, 0.2);
 
 $dark-foreground: $white;
-$dark-background: $black;
+$dark-background: lighten($black, 5%);
 $dark-primary: darken($blue, 5%);
 $dark-primary-hover: lighten($blue, 10%);
 $dark-success: $green;

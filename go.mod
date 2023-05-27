@@ -5,12 +5,13 @@ go 1.20
 require (
 	github.com/Khan/genqlient v0.5.0
 	github.com/a-h/templ v0.2.282
-	github.com/diamondburned/hrt v0.0.0-20230518062556-4f152ff38a7a
+	github.com/diamondburned/hrt v0.0.0-20230522185910-49a3cddcc21c
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/pkg/errors v0.9.1
 	github.com/rs/xid v1.5.0
+	golang.org/x/image v0.7.0
 	golang.org/x/oauth2 v0.7.0
 	libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5
 	modernc.org/sqlite v1.22.1
@@ -29,7 +30,7 @@ require (
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

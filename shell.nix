@@ -16,16 +16,27 @@ let
 	useForRev = src: rev: hash:
 		if (lib.hasPrefix rev src.rev) then hash else
 			builtins.trace "${hash}: no value for newer revision ${src.rev}" lib.fakeSha256;
-	shortRev = rev: builtins.substring 0 7 rev;
+	shortRev = src: "${src.branch}-${builtins.substring 0 7 src.rev}";
 in
 
 let
 	pkgs = import (src.nixpkgs) {};
 
+	fetchPatchFromGitHub = { owner, repo, rev ? null, pr ? null, sha256 }:
+		assert lib.assertMsg (rev != null || pr != null) "rev or pr must be set";
+		pkgs.fetchpatch {
+			url =
+				if rev != null then
+					"https://github.com/${owner}/${repo}/commit/${rev}.patch"
+				else
+					"https://github.com/${owner}/${repo}/pull/${pr}.patch";
+			inherit sha256;
+		};
+
 	goapi-gen = pkgs.buildGoModule {
 		name = "goapi-gen";
 		src = src.goapi-gen;
-		version = shortRev src.goapi-gen.rev;
+		version = shortRev src.goapi-gen;
 		vendorSha256 = useForRev src.goapi-gen "8ca3a5b"
 			"1dknfg3w97421c8dnld5kvx0psicvmxr7wzkhqipaxplcg3cqrr9";
 	};
@@ -33,11 +44,9 @@ let
 	sqlc = pkgs.buildGoModule {
 		name = "sqlc";
 		src = src.sqlc;
-		version = src.sqlc.version;
-		# vendorSha256 = useForVersion src.sqlc "v1.18.0"
-		# 	"0pppq4frcavvsllwrl3z8cpn1j23nkiqzh5h4142ajqrw83qydw0";
-		vendorSha256 = useForVersion src.sqlc "v1.17.2"
-			"0ih9siizn6nkvm4wi0474wxy323hklkhmdl52pql0qzqanmri4yb";
+		version = shortRev src.sqlc;
+		vendorSha256 = useForRev src.sqlc "2adb18f"
+			"sha256-CoJokasqaCK4lKN9A65JU2T00cWR0YclrowNDoe+q1c=";
 		doCheck = false;
 		proxyVendor = true;
 		subPackages = [ "cmd/sqlc" ];
@@ -46,7 +55,7 @@ let
 	nixos-shell = pkgs.buildGoModule {
 		name = "nixos-shell";
 		src = src.nixos-shell;
-		version = shortRev src.nixos-shell.rev;
+		version = shortRev src.nixos-shell;
 		vendorSha256 = useForRev src.nixos-shell "e238cb5"
 			"0gjj1zn29vyx704y91g77zrs770y2rakksnn9dhg8r6na94njh5a";
 	};
@@ -54,7 +63,7 @@ let
 	genqlient = pkgs.buildGoModule {
 		name = "genqlient";
 		src = src.genqlient;
-		version = shortRev src.genqlient.rev;
+		version = shortRev src.genqlient;
 		vendorSha256 = useForRev src.genqlient "677fa94"
 			"150kwgywpivkc7q901ygdjjw8fgncwgcmkjj4lbrvkik7ynpm9dn";
 		subPackages = [ "." ];
@@ -63,7 +72,7 @@ let
 	templ = pkgs.buildGoModule {
 		name = "templ";
 		src = src.templ;
-		version = shortRev src.templ.rev;
+		version = shortRev src.templ;
 		vendorSha256 = useForRev src.templ "acea959"
 			"sha256-GE471JVtlIOpH3hun/1Kae16/MDmUYV/w8dgV9sagB4=";
 		subPackages = [ "cmd/templ" ];

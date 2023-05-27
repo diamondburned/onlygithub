@@ -5,9 +5,11 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
+import "time"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
+	Posts []onlygithub.Post
 	OwnerAvatarURL string
 }
 
@@ -73,8 +75,52 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 			</div>
 		</nav>
 
-		<section>
+		<section id="posts">
 			<h2>Latest Posts</h2>
+			for _, post := range opts.Posts {
+				<article
+					id={ "post-" + post.ID.String() }
+					class={
+						"post",
+						templ.KV("concealed", post.IsConcealed),
+						templ.KV("has-images", len(post.Images) > 0),
+					}
+				>
+					if post.IsConcealed {
+						<div class="concealed-overlay">
+							@components.Icon("paid", components.LargeIcon)
+							<span>{ "Post is only available to " + visibilityMap[post.Visibility] }</span>
+						</div>
+					}
+					<div class="cover">
+						for _, image := range post.Images {
+							<img
+								if !image.ID.IsZero() {
+									src={ "/images/" + image.ID.String() }
+									alt="post image"
+								} else {
+									src={ image.PreviewURL }
+									alt="blurred post image"
+								}
+							/>
+						}
+					</div>
+					<div class="body">
+						<div class="author">
+							<img class="avatar" src={ opts.OwnerAvatarURL } alt="avatar"/>
+							<div>
+								<span class="username">{ owner.Username }</span>
+								<time class="relative" datetime={ post.ID.Time().Format(time.RFC3339) }>
+									{ post.ID.Time().Format("January _2, 2006 at 03:04pm") }
+								</time>
+							</div>
+						</div>
+						<div class="content markdown markdown-unsafe">
+							{ post.Markdown }
+						</div>
+					</div>
+				</article>
+			}
 		</section>
 	}
 }

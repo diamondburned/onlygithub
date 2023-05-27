@@ -23,7 +23,6 @@ type ImageService interface {
 
 func New(images ImageService, oauth *auth.OAuthMiddleware) http.Handler {
 	r := chi.NewRouter()
-	r.Use(oauth.RequireOrRedirect())
 	r.Get("/{id}", (&handler{images}).get)
 
 	return r
@@ -40,14 +39,13 @@ func (h *handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := frontend.SessionFromRequest(r)
-
 	image, err := h.isrv.Image(r.Context(), id)
 	if err != nil {
 		layouts.RenderError(w, r, err)
 		return
 	}
 
+	session := frontend.SessionFromRequest(r)
 	if !image.IsVisibleTo(session.Me) {
 		layouts.RenderError(w, r, hrt.WrapHTTPError(http.StatusNotFound, err))
 		return

@@ -46,13 +46,29 @@ CREATE TABLE IF NOT EXISTS user_tiers (
 
 CREATE TABLE IF NOT EXISTS assets (
 	id TEXT PRIMARY KEY, -- xid
-	type TEXT CHECK (type IN ('post', 'image')),
-	data BLOB NOT NULL, -- JSON for post, blob data for image
+	data BLOB NOT NULL, -- blob data for image
+	filename TEXT NOT NULL,
 	visibility TEXT NOT NULL CHECK (visibility IN ('', 'sponsor', 'public', 'private')) NOT NULL,
 	minimum_cost INTEGER NOT NULL, -- cents
 	last_updated TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS posts (
+	id TEXT PRIMARY KEY,
+	data BLOB NOT NULL, -- JSON
+	visibility TEXT NOT NULL CHECK (visibility IN ('', 'sponsor', 'public', 'private')) NOT NULL,
+	minimum_cost INTEGER NOT NULL, -- cents
+	last_updated TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS asset_refs (
+	asset_id TEXT NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+	post_id TEXT REFERENCES posts(id) ON DELETE CASCADE,
+	UNIQUE (post_id, asset_id)
+);
+
 -- MIGRATE --
 
-ALTER TABLE assets ADD COLUMN filename TEXT NOT NULL DEFAULT '';
+ALTER TABLE assets ADD COLUMN preview_url TEXT DEFAULT NULL;
+ALTER TABLE assets ADD COLUMN width INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE assets ADD COLUMN height INTEGER NOT NULL DEFAULT 0;

@@ -56,7 +56,9 @@ func New(d frontend.Deps) http.Handler {
 		}))
 		r.Mount("/images", images.New(d.Images, oauthMiddleware))
 		r.Mount("/admin", admin.New(d.Tiers))
-		r.Get("/", index.GET)
+		r.Mount("/", index.New(index.Services{
+			Posts: d.Posts,
+		}))
 	})
 
 	return r

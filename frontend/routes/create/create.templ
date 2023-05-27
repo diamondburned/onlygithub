@@ -5,6 +5,7 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
+import "strconv"
 
 type createData struct {
 	Tiers []onlygithub.Tier
@@ -20,28 +21,24 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 			</a>
 			Create New Post
 		</h1>
-		<form id="create-post-form" method="post" action="">
+		<form id="create-post-form" method="post" action="" enctype="multipart/form-data">
 			<formset>
-				<div class="label-input-set">
-					<label for="images">
-						@components.Icon("image", 0)
-					</label>
+				<label for="images" class="label-input-set">
+					@components.Icon("image", 0)
 					<input type="file" id="images" name="images" multiple accept="image/*" />
-				</div>
+				</label>
 
-				<div class="label-input-set">
-					<label for="tier">
-						@components.Icon("attach_money", 0)
-					</label>
-					<select id="tier" name="price">
+				<label for="minimum-cost" class="label-input-set">
+					@components.Icon("attach_money", 0)
+					<select id="minimum-cost" name="minimum-cost">
 						<option value="0">Free</option>
 						for _, tier := range data.Tiers {
-							<option value="{ tier.Price }">
+							<option value={ strconv.Itoa(int(tier.Price)) }>
 								{ tier.Name } ({ tier.Price.String() })
 							</option>
 						}
 					</select>
-				</div>
+				</label>
 			</formset>
 
 			<formset>
@@ -70,7 +67,7 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 				<div class="toggle-checkbox">
 					<input
 						type="checkbox"
-						id="comments" name="comments" value="1"
+						id="comments" name="comments" value="1" checked
 						disabled?={ !site.AllowComments }
 					/>
 					<label for="comments">
@@ -81,7 +78,7 @@ templ create(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Use
 				<div class="toggle-checkbox">
 					<input
 						type="checkbox"
-						id="reactions" name="reactions" value="1"
+						id="reactions" name="reactions" value="1" checked
 						disabled?={ !site.AllowReactions }
 					/>
 					<label for="reactions">

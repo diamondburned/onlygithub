@@ -58,3 +58,18 @@ func Style(css string) templ.Component {
 		return nil
 	})
 }
+
+func If[T any](cond bool, v T) T {
+	if cond {
+		return v
+	}
+	var zero T
+	return zero
+}
+
+func IfElse[T any](cond bool, v1, v2 T) T {
+	if cond {
+		return v1
+	}
+	return v2
+}

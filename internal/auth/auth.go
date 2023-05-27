@@ -210,6 +210,21 @@ func (a *OAuthMiddleware) Use() func(next http.Handler) http.Handler {
 	}
 }
 
+// Require is similar to Use, except it 401s the user if they are not
+// authorized.
+func (a *OAuthMiddleware) Require() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := TokenFromRequest(r)
+			if token == nil {
+				api.RespondError(w, r, hrt.NewHTTPError(http.StatusUnauthorized, "not authorized"))
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // RequireOrRedirect is similar to Use, except it redirects the user to the
 // given URL if they are not authorized. Use this to establish a login wall.
 func (a *OAuthMiddleware) RequireOrRedirect() func(http.Handler) http.Handler {

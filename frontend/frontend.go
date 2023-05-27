@@ -92,7 +92,7 @@ func (d *Deps) RenderingMiddleware(next http.Handler) http.Handler {
 				}
 			}
 
-			ctx = context.WithValue(ctx, sessionKey, &Session{
+			ctx = context.WithValue(ctx, sessionKey, Session{
 				Token:  oauth,
 				GitHub: client,
 				Me:     user,
@@ -114,8 +114,8 @@ func OwnerFromRequest(r *http.Request) *onlygithub.User {
 }
 
 // SessionFromRequest returns the session from the request.
-func SessionFromRequest(r *http.Request) *Session {
-	v, _ := r.Context().Value(sessionKey).(*Session)
+func SessionFromRequest(r *http.Request) Session {
+	v, _ := r.Context().Value(sessionKey).(Session)
 	return v
 }
 
@@ -123,7 +123,7 @@ func SessionFromRequest(r *http.Request) *Session {
 func OwnerOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := SessionFromRequest(r)
-		if session == nil || !session.Me.IsOwner {
+		if session.Me == nil || !session.Me.IsOwner {
 			layouts.RenderError(w, r, onlygithub.ErrUnauthorized)
 			return
 		}
@@ -136,7 +136,7 @@ func OwnerOnly(next http.Handler) http.Handler {
 func LoggedInOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := SessionFromRequest(r)
-		if session == nil {
+		if session.Me == nil {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}

@@ -3,6 +3,7 @@ package settings
 import (
 	"context"
 	"html/template"
+	"log"
 	"mime/multipart"
 	"net/http"
 
@@ -94,13 +95,8 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if values := r.MultipartForm.File["banner"]; len(values) > 0 {
-		form.Banner = values[0]
-	}
-
-	if values := r.MultipartForm.File["avatar"]; len(values) > 0 {
-		form.Avatar = values[0]
-	}
+	form.Banner = getMultipartFile(r, "banner")
+	form.Avatar = getMultipartFile(r, "avatar")
 
 	site := frontend.SiteFromRequest(r)
 
@@ -114,20 +110,28 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 	site.AllowReactions = form.AllowReactions
 	site.HomepageVisibility = form.HomepageVisibility
 
-	var err error
+	log.Printf("Homepage visibility: %v", form.HomepageVisibility)
 
 	if form.Avatar != nil {
-		site.AvatarAsset, err = h.replaceAsset(r.Context(), site.AvatarAsset, site.HomepageVisibility, form.Avatar)
-		if err != nil {
+		if err := h.replaceAsset(r.Context(), &site.AvatarAsset, site.HomepageVisibility, form.Avatar); err != nil {
 			layouts.RenderError(w, r, errors.Wrap(err, "failed to replace avatar"))
+			return
+		}
+	} else if site.AvatarAsset != nil {
+		if err := h.Images.SetImageVisibility(r.Context(), *site.AvatarAsset, site.HomepageVisibility); err != nil {
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to set avatar visibility"))
 			return
 		}
 	}
 
 	if form.Banner != nil {
-		site.BannerAsset, err = h.replaceAsset(r.Context(), site.BannerAsset, site.HomepageVisibility, form.Banner)
-		if err != nil {
+		if err := h.replaceAsset(r.Context(), &site.BannerAsset, site.HomepageVisibility, form.Banner); err != nil {
 			layouts.RenderError(w, r, errors.Wrap(err, "failed to replace banner"))
+			return
+		}
+	} else if site.BannerAsset != nil {
+		if err := h.Images.SetImageVisibility(r.Context(), *site.BannerAsset, site.HomepageVisibility); err != nil {
+			layouts.RenderError(w, r, errors.Wrap(err, "failed to set banner visibility"))
 			return
 		}
 	}
@@ -140,10 +144,10 @@ func (h handler) saveSite(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/settings", http.StatusSeeOther)
 }
 
-func (h handler) replaceAsset(ctx context.Context, oldAssetID *onlygithub.ID, visibility onlygithub.Visibility, header *multipart.FileHeader) (*onlygithub.ID, error) {
+func (h handler) replaceAsset(ctx context.Context, oldAssetID **onlygithub.ID, visibility onlygithub.Visibility, header *multipart.FileHeader) error {
 	// Delete the old banner if it exists.
-	if oldAssetID != nil {
-		if err := h.Images.DeleteImage(ctx, *oldAssetID); err != nil {
+	if *oldAssetID != nil {
+		if err := h.Images.DeleteImage(ctx, **oldAssetID); err != nil {
 			log := hclog.FromContext(ctx)
 			log.Warn("failed to delete old asset", "err", err)
 		}
@@ -151,7 +155,7 @@ func (h handler) replaceAsset(ctx context.Context, oldAssetID *onlygithub.ID, vi
 
 	f, err := header.Open()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open asset form file")
+		return errors.Wrap(err, "failed to open asset form file")
 	}
 	defer f.Close()
 
@@ -163,9 +167,16 @@ func (h handler) replaceAsset(ctx context.Context, oldAssetID *onlygithub.ID, vi
 
 	a, err := h.Images.UploadImage(ctx, req, f)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to upload asset")
+		return errors.Wrap(err, "failed to upload asset")
 	}
 
-	id := a.ID
-	return &id, nil
+	*oldAssetID = &a.ID
+	return nil
+}
+
+func getMultipartFile(r *http.Request, name string) *multipart.FileHeader {
+	if values := r.MultipartForm.File[name]; len(values) > 0 {
+		return values[0]
+	}
+	return nil
 }

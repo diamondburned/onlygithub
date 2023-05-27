@@ -262,8 +262,14 @@ func (s *SQLite) UploadImage(ctx context.Context, req onlygithub.UploadImageRequ
 	id := onlygithub.GenerateID()
 
 	updated, err := s.q.CreateImageAsset(ctx, sqlitec.CreateImageAssetParams{
-		ID:          id.String(),
-		Data:        b,
+		ID:   id.String(),
+		Data: b,
+		PreviewUrl: sql.NullString{
+			String: req.PreviewURL,
+			Valid:  req.PreviewURL != "",
+		},
+		Width:       int64(req.Width),
+		Height:      int64(req.Height),
 		Visibility:  string(req.Visibility),
 		MinimumCost: int64(req.MinimumCost),
 		Filename:    req.Filename,
@@ -355,15 +361,14 @@ func (s *SQLite) Tiers(ctx context.Context) ([]onlygithub.Tier, error) {
 		return nil, sqliteErr(err)
 	}
 
-	tiers := make([]onlygithub.Tier, len(v))
-	for i, t := range v {
-		tiers[i] = onlygithub.Tier{
+	tiers := mapSlice(v, func(t sqlitec.Tier) onlygithub.Tier {
+		return onlygithub.Tier{
 			ID:          onlygithub.GitHubID(t.ID),
 			Name:        t.Name,
 			Price:       onlygithub.Cents(t.Price),
 			Description: template.HTML(t.Description),
 		}
-	}
+	})
 
 	return tiers, nil
 }
@@ -395,6 +400,159 @@ func (s *SQLite) UpdateTiers(ctx context.Context, tiers []onlygithub.Tier) error
 	}
 
 	return sqliteErr(tx.Commit())
+}
+
+type postDataJSON struct {
+	Markdown       string `json:"markdown"`
+	AllowComments  *bool  `json:"allowComments,omitempty"`
+	AllowReactions *bool  `json:"allowReactions,omitempty"`
+}
+
+func (s *SQLite) Posts(ctx context.Context, u *onlygithub.User, before onlygithub.ID) ([]onlygithub.Post, error) {
+	var posts_ []sqlitec.Post
+	var err error
+	if before != onlygithub.NullID {
+		posts_, err = s.q.PostsBefore(ctx, before.String())
+	} else {
+		posts_, err = s.q.Posts(ctx)
+	}
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return mapSliceE(posts_, func(p sqlitec.Post) (onlygithub.Post, error) {
+		var z onlygithub.Post
+
+		pID, err := onlygithub.ParseID(p.ID)
+		if err != nil {
+			return z, errors.Wrapf(err, "invalid post ID")
+		}
+
+		var data postDataJSON
+		if err := json.Unmarshal([]byte(p.Data), &data); err != nil {
+			return z, errors.Wrapf(err, "invalid post data")
+		}
+
+		images, err := s.postImages(ctx, pID)
+		if err != nil {
+			return z, sqliteErr(err)
+		}
+
+		post := onlygithub.Post{
+			Asset: onlygithub.Asset{
+				ID:          pID,
+				Visibility:  onlygithub.Visibility(p.Visibility),
+				MinimumCost: onlygithub.Cents(p.MinimumCost),
+				LastUpdated: nullTimePtr(p.LastUpdated),
+			},
+			Markdown:       data.Markdown,
+			AllowComments:  data.AllowComments,
+			AllowReactions: data.AllowReactions,
+			Images:         images,
+		}
+
+		if !post.IsVisibleTo(u) {
+			post = onlygithub.ConcealPost(post)
+		}
+
+		return post, nil
+	})
+}
+
+func (s *SQLite) postImages(ctx context.Context, id onlygithub.ID) ([]onlygithub.PostImage, error) {
+	images_, err := s.q.PostImages(ctx, sql.NullString{String: id.String(), Valid: true})
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	images, err := mapSliceE(images_, func(i sqlitec.PostImagesRow) (onlygithub.PostImage, error) {
+		id, err := onlygithub.ParseID(i.ID)
+		if err != nil {
+			return onlygithub.PostImage{}, errors.Wrapf(err, "invalid image ID")
+		}
+
+		return onlygithub.PostImage{
+			ID:         id,
+			Width:      int(i.Width),
+			Height:     int(i.Height),
+			PreviewURL: i.PreviewUrl.String,
+		}, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return images, nil
+}
+
+func (s *SQLite) CreatePost(ctx context.Context, post onlygithub.CreatePostRequest) (*onlygithub.Post, error) {
+	data, err := json.Marshal(postDataJSON{
+		Markdown:       post.Markdown,
+		AllowComments:  post.AllowComments,
+		AllowReactions: post.AllowReactions,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot marshal post data")
+	}
+
+	id := onlygithub.GenerateID()
+
+	lastMod, err := s.q.CreatePost(ctx, sqlitec.CreatePostParams{
+		ID:          id.String(),
+		Data:        data,
+		Visibility:  string(post.Visibility),
+		MinimumCost: int64(post.MinimumCost),
+	})
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	for _, assetID := range post.AssetIDs {
+		if err := s.q.BindAssetToPost(ctx, sqlitec.BindAssetToPostParams{
+			PostID:  sql.NullString{String: id.String(), Valid: true},
+			AssetID: assetID.String(),
+		}); err != nil {
+			return nil, sqliteErr(errors.Wrapf(err, "cannot bind asset %s to post %s", assetID, assetID))
+		}
+	}
+
+	images, err := s.postImages(ctx, id)
+	if err != nil {
+		return nil, sqliteErr(err)
+	}
+
+	return &onlygithub.Post{
+		Asset: onlygithub.Asset{
+			ID:          id,
+			Visibility:  post.Visibility,
+			MinimumCost: post.MinimumCost,
+			LastUpdated: nullTimePtr(lastMod),
+		},
+		Markdown:       post.Markdown,
+		AllowComments:  post.AllowComments,
+		AllowReactions: post.AllowReactions,
+		Images:         images,
+	}, nil
+}
+
+func mapSlice[From, To any](slice []From, mapFunc func(From) To) []To {
+	out := make([]To, len(slice))
+	for i, v := range slice {
+		out[i] = mapFunc(v)
+	}
+	return out
+}
+
+func mapSliceE[From, To any](slice []From, mapFunc func(From) (To, error)) ([]To, error) {
+	out := make([]To, len(slice))
+	for i, v := range slice {
+		var err error
+		out[i], err = mapFunc(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
 }
 
 func sqliteErr(err error) error {

@@ -277,7 +277,7 @@
 
         .content {
           filter: blur(15px);
-          color: var(--dull);
+          opacity: 0.65;
         }
 
         .concealed-overlay {

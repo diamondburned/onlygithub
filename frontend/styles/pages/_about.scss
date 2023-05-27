@@ -1,0 +1,6 @@
+@use "../base" as *;
+@use "../variables" as *;
+
+main#about {
+  @include centered-page;
+}

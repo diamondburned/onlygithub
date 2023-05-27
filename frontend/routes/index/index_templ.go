@@ -267,7 +267,7 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				return err
 			}
 			// Element Attributes
-			_, err = templBuffer.WriteString(" class=\"site-description\"")
+			_, err = templBuffer.WriteString(" class=\"site-description markdown markdown-unsafe\"")
 			if err != nil {
 				return err
 			}
@@ -897,9 +897,36 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				if err != nil {
 					return err
 				}
+				// If
+				if post.Markdown == "" && len(post.Images) == 0 {
+					// Element (standard)
+					_, err = templBuffer.WriteString("<p")
+					if err != nil {
+						return err
+					}
+					// Element Attributes
+					_, err = templBuffer.WriteString(" class=\"empty\"")
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString(">")
+					if err != nil {
+						return err
+					}
+					// Text
+					var_11 := `This post is empty.`
+					_, err = templBuffer.WriteString(var_11)
+					if err != nil {
+						return err
+					}
+					_, err = templBuffer.WriteString("</p>")
+					if err != nil {
+						return err
+					}
+				}
 				// StringExpression
-				var var_11 string = post.Markdown
-				_, err = templBuffer.WriteString(templ.EscapeString(var_11))
+				var var_12 string = post.Markdown
+				_, err = templBuffer.WriteString(templ.EscapeString(var_12))
 				if err != nil {
 					return err
 				}
@@ -944,9 +971,9 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			defer templ.ReleaseBuffer(templBuffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_12 := templ.GetChildren(ctx)
-		if var_12 == nil {
-			var_12 = templ.NopComponent
+		var_13 := templ.GetChildren(ctx)
+		if var_13 == nil {
+			var_13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -963,8 +990,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 		if err != nil {
 			return err
 		}
-		var var_13 templ.SafeURL = dst
-		_, err = templBuffer.WriteString(templ.EscapeString(string(var_13)))
+		var var_14 templ.SafeURL = dst
+		_, err = templBuffer.WriteString(templ.EscapeString(string(var_14)))
 		if err != nil {
 			return err
 		}
@@ -983,8 +1010,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			return err
 		}
 		// StringExpression
-		var var_14 string = name
-		_, err = templBuffer.WriteString(templ.EscapeString(var_14))
+		var var_15 string = name
+		_, err = templBuffer.WriteString(templ.EscapeString(var_15))
 		if err != nil {
 			return err
 		}

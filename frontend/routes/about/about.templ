@@ -1,0 +1,26 @@
+package about
+
+import "libdb.so/onlygithub/internal/templutil"
+import "libdb.so/onlygithub/frontend/components"
+import "libdb.so/onlygithub/frontend/layouts"
+import "libdb.so/onlygithub"
+import "net/http"
+
+templ about(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User) {
+	<!DOCTYPE html>
+	@layouts.Main("about", "About Me", site, owner) {
+		<h1>
+			<a href="/" class="back-link">
+				@components.Icon("chevron_left", components.InlineIcon)
+			</a>
+			About
+		</h1>
+
+		<div class="about-content markdown markdown-unsafe">
+			if site.About == "" {
+				<p class="empty">Nothing here yet!</p>
+			}
+			@templutil.UnsafeHTML(site.About)
+		</div>
+	}
+}

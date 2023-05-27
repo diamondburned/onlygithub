@@ -1,7 +1,7 @@
 @use "../base" as *;
 @use "../variables" as *;
 
-#settings {
+main#settings {
   @include centered-page;
   overflow: hidden;
   margin-bottom: 2em;

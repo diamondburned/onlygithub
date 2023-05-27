@@ -34,7 +34,7 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 						<span class="username">{ owner.Username }</span>
 					}
 				</h1>
-				<p class="site-description">
+				<p class="site-description markdown markdown-unsafe">
 					@templutil.UnsafeHTML(site.Description)
 				</p>
 			</div>
@@ -116,6 +116,9 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 							</div>
 						</div>
 						<div class="content markdown markdown-unsafe">
+							if post.Markdown == "" && len(post.Images) == 0 {
+								<p class="empty">This post is empty.</p>
+							}
 							{ post.Markdown }
 						</div>
 					</div>

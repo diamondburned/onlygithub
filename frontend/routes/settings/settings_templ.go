@@ -656,7 +656,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" language=\"html\"")
+					_, err = templBuffer.WriteString(" language=\"markdown\"")
 					if err != nil {
 						return err
 					}
@@ -720,7 +720,7 @@ func settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.Us
 					if err != nil {
 						return err
 					}
-					_, err = templBuffer.WriteString(" language=\"html\"")
+					_, err = templBuffer.WriteString(" language=\"markdown\"")
 					if err != nil {
 						return err
 					}

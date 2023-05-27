@@ -9,6 +9,7 @@ import (
 	"libdb.so/onlygithub/dist"
 	"libdb.so/onlygithub/frontend"
 	"libdb.so/onlygithub/frontend/layouts"
+	"libdb.so/onlygithub/frontend/routes/about"
 	"libdb.so/onlygithub/frontend/routes/admin"
 	"libdb.so/onlygithub/frontend/routes/create"
 	"libdb.so/onlygithub/frontend/routes/images"
@@ -56,6 +57,8 @@ func New(d frontend.Deps) http.Handler {
 		}))
 		r.Mount("/images", images.New(d.Images, oauthMiddleware))
 		r.Mount("/admin", admin.New(d.Tiers))
+		r.Mount("/about", about.New())
+		r.Mount("/membership", unimplemented)
 		r.Mount("/", index.New(index.Services{
 			Posts: d.Posts,
 		}))
@@ -70,6 +73,6 @@ func redirectHandler(path string) http.Handler {
 	})
 }
 
-func unimplemented(w http.ResponseWriter, r *http.Request) {
+var unimplemented = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	layouts.RenderError(w, r, hrt.NewHTTPError(http.StatusNotImplemented, "not implemented"))
-}
+})

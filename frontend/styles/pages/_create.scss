@@ -1,7 +1,7 @@
 @use "../base" as *;
 @use "../variables" as *;
 
-#create {
+main#create {
   @include centered-page;
   height: 100%;
   overflow: hidden;

@@ -325,8 +325,11 @@ func mostEffectiveParagraphCensoringAlgorithm(markdown string) string {
 	}
 
 	for _, line := range lines {
-		meow(len(line) + rander.Intn(10))
-		b.WriteString("\n\n")
+		if line != "" {
+			meow(len(line) + rander.Intn(10))
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
 	}
 
 	return b.String()

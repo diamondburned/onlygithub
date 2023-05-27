@@ -116,6 +116,12 @@ textarea {
   }
 }
 
+textarea[is="highlighted-code"]:not([style=""]),
+pre.highlighted-code:not([style=""]) {
+  overflow: hidden !important;
+  white-space: pre-wrap;
+}
+
 button {
   height: var(--input-height);
   border-radius: var(--radius);
@@ -171,4 +177,10 @@ body.main > main {
 
 html.is-animating body.main > main {
   opacity: 0;
+}
+
+p.empty {
+  text-align: center;
+  font-size: 0.85em;
+  color: var(--dull);
 }

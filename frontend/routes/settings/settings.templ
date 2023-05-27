@@ -96,7 +96,7 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						"A short description of your site in HTML", "multiline",
 					) {
 						<textarea
-							is="highlighted-code" class="code grow" language="html" rows="5"
+							is="highlighted-code" class="code grow" language="markdown" rows="5"
 							name="description" id="description"
 						>
 							{ string(data.SiteConfig.Description) }
@@ -109,7 +109,7 @@ templ settings(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.U
 						"Contents of the About page in HTML", "multiline",
 					) {
 						<textarea
-							is="highlighted-code" class="code grow" language="html" rows="5"
+							is="highlighted-code" class="code grow" language="markdown" rows="5"
 							name="about" id="about"
 						>
 							{ string(data.SiteConfig.About) }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/diamondburned/hrt"
 	"github.com/go-chi/chi/v5"
+	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
 	"libdb.so/onlygithub"
 	"libdb.so/onlygithub/frontend"
@@ -28,6 +29,7 @@ func New(s Services) http.Handler {
 	h := &handler{s}
 
 	r := chi.NewRouter()
+	r.Use(frontend.EnforceHomepageVisibility)
 	r.Get("/", h.get)
 
 	return r
@@ -57,37 +59,17 @@ func (h handler) get(w http.ResponseWriter, r *http.Request) {
 	session := frontend.SessionFromRequest(r)
 	opts.Me = session.Me
 
-	switch site.HomepageVisibility {
-	case onlygithub.NotVisible:
-		if opts.Me == nil || opts.Me.ID != owner.ID {
-			kickToLogin(w, r)
-			return
-		}
-	case onlygithub.VisibleToSponsors:
-		if opts.Me == nil || opts.Me.Sponsorship == nil {
-			kickToLogin(w, r)
-			return
-		}
-	case onlygithub.VisibleToPrivate:
-		if opts.Me == nil {
-			kickToLogin(w, r)
-			return
-		}
-	case onlygithub.VisibleToPublic:
-		// Nothing.
-	}
-
 	posts, err := h.Posts.Posts(r.Context(), opts.Me, form.Before)
 	if err != nil {
 		layouts.RenderError(w, r, errors.Wrap(err, "failed to get posts"))
 		return
 	}
 
+	for _, post := range posts {
+		hclog.FromContext(r.Context()).Info("post", "id", post.ID, "content", post.Markdown, "images", post.Images)
+	}
+
 	opts.Posts = posts
 
 	index(r, site, owner, opts).Render(r.Context(), w)
-}
-
-func kickToLogin(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/login", http.StatusFound)
 }

@@ -237,9 +237,11 @@ func (a Asset) IsVisibleTo(user *User) bool {
 	case NotVisible:
 		return user != nil && user.IsOwner
 	case VisibleToSponsors:
-		return user != nil &&
-			user.Sponsorship != nil &&
-			user.Sponsorship.Price >= a.MinimumCost
+		return false ||
+			(user != nil && user.IsOwner) ||
+			(user != nil &&
+				user.Sponsorship != nil &&
+				user.Sponsorship.Price >= a.MinimumCost)
 	case VisibleToPrivate:
 		return user != nil
 	case VisibleToPublic:

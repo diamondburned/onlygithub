@@ -5,7 +5,6 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
-import "time"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
@@ -110,9 +109,7 @@ templ index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User
 							<img class="avatar" src={ opts.OwnerAvatarURL } alt="avatar"/>
 							<div>
 								<span class="username">{ owner.Username }</span>
-								<time class="relative" datetime={ post.ID.Time().Format(time.RFC3339) }>
-									{ post.ID.Time().Format("January _2, 2006 at 03:04pm") }
-								</time>
+								@components.RelativeTime(post.ID.Time())
 							</div>
 						</div>
 						<div class="content markdown markdown-unsafe">

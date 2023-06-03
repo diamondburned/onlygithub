@@ -15,7 +15,6 @@ import "libdb.so/onlygithub/frontend/components"
 import "libdb.so/onlygithub/frontend/layouts"
 import "libdb.so/onlygithub"
 import "net/http"
-import "time"
 
 type indexOpts struct {
 	Me *onlygithub.User // optional
@@ -835,43 +834,8 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 				if err != nil {
 					return err
 				}
-				// Element (standard)
-				_, err = templBuffer.WriteString("<time")
-				if err != nil {
-					return err
-				}
-				// Element Attributes
-				_, err = templBuffer.WriteString(" class=\"relative\"")
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString(" datetime=")
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString("\"")
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString(templ.EscapeString(post.ID.Time().Format(time.RFC3339)))
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString("\"")
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString(">")
-				if err != nil {
-					return err
-				}
-				// StringExpression
-				var var_10 string = post.ID.Time().Format("January _2, 2006 at 03:04pm")
-				_, err = templBuffer.WriteString(templ.EscapeString(var_10))
-				if err != nil {
-					return err
-				}
-				_, err = templBuffer.WriteString("</time>")
+				// TemplElement
+				err = components.RelativeTime(post.ID.Time()).Render(ctx, templBuffer)
 				if err != nil {
 					return err
 				}
@@ -914,8 +878,8 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 						return err
 					}
 					// Text
-					var_11 := `This post is empty.`
-					_, err = templBuffer.WriteString(var_11)
+					var_10 := `This post is empty.`
+					_, err = templBuffer.WriteString(var_10)
 					if err != nil {
 						return err
 					}
@@ -925,8 +889,8 @@ func index(r *http.Request, site *onlygithub.SiteConfig, owner *onlygithub.User,
 					}
 				}
 				// StringExpression
-				var var_12 string = post.Markdown
-				_, err = templBuffer.WriteString(templ.EscapeString(var_12))
+				var var_11 string = post.Markdown
+				_, err = templBuffer.WriteString(templ.EscapeString(var_11))
 				if err != nil {
 					return err
 				}
@@ -971,9 +935,9 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			defer templ.ReleaseBuffer(templBuffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_13 := templ.GetChildren(ctx)
-		if var_13 == nil {
-			var_13 = templ.NopComponent
+		var_12 := templ.GetChildren(ctx)
+		if var_12 == nil {
+			var_12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -990,8 +954,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 		if err != nil {
 			return err
 		}
-		var var_14 templ.SafeURL = dst
-		_, err = templBuffer.WriteString(templ.EscapeString(string(var_14)))
+		var var_13 templ.SafeURL = dst
+		_, err = templBuffer.WriteString(templ.EscapeString(string(var_13)))
 		if err != nil {
 			return err
 		}
@@ -1010,8 +974,8 @@ func navButton(r *http.Request, dst templ.SafeURL, name string) templ.Component 
 			return err
 		}
 		// StringExpression
-		var var_15 string = name
-		_, err = templBuffer.WriteString(templ.EscapeString(var_15))
+		var var_14 string = name
+		_, err = templBuffer.WriteString(templ.EscapeString(var_14))
 		if err != nil {
 			return err
 		}

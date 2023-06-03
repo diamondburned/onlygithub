@@ -63,7 +63,7 @@ function updateTimes() {
     const date = new Date(time.getAttribute("datetime")!);
 
     let delta = date.getTime() - Date.now();
-    let unit = "day";
+    let unit: string;
     if (Math.abs(delta) < Duration.minute) {
       delta = Math.round(delta / Duration.second);
       unit = "second";
@@ -73,17 +73,24 @@ function updateTimes() {
     } else if (Math.abs(delta) < Duration.day) {
       delta = Math.round(delta / Duration.hour);
       unit = "hour";
+    } else {
+      delta = Math.round(delta / Duration.day);
+      unit = "day";
     }
 
     time.textContent = formatter.format(delta, unit as any);
   });
 
-  document.querySelectorAll("time.localize").forEach((time) => {
+  document.querySelectorAll("time").forEach((time) => {
     const date = new Date(time.getAttribute("datetime")!);
-    time.textContent = date.toLocaleString(undefined, {
+    const localized = date.toLocaleString(undefined, {
       dateStyle: "full",
       timeStyle: "long",
     });
+    time.title = localized;
+    if (time.classList.contains("localize")) {
+      time.textContent = localized;
+    }
   });
 }
 

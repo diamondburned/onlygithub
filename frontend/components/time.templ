@@ -1,0 +1,13 @@
+package components
+
+import "time"
+
+templ RelativeTime(t time.Time) {
+	<time
+		class="relative"
+		title={ t.Format("January _2, 2006 at 03:04pm") }
+		datetime={ t.Format(time.RFC3339) }
+	>
+		{ t.Format("January _2, 2006 at 03:04pm") }
+	</time>
+}
